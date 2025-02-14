@@ -11,12 +11,6 @@ export default defineConfig({
         'level-0/index': resolve(__dirname, 'src/level-0/index.ts'),
       },
       formats: ['es']
-    },
-    rollupOptions: {
-      output: {
-        preserveModules: true,
-        preserveModulesRoot: 'src',
-      }
     }
   }
 });
