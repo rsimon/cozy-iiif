@@ -1,20 +1,19 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": ".",
-    "isolatedModules": true,
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": false,
-    "target": "ES6",
+    "strict": true,
+    "target": "ES2020",
+    "verbatimModuleSyntax": true,
     "useDefineForClassFields": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

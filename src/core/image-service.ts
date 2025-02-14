@@ -1,6 +1,6 @@
-import { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
+import type { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
 import { getPropertyValue } from './resource';
-import { Bounds, CozyImageResource } from '../types';
+import type { Bounds, CozyImageResource } from '../types';
 
 type ImageService = ImageService2 | ImageService3;
 
@@ -66,7 +66,7 @@ export const getRegionURLFromService = (
   service: ImageService2 | ImageService3,
   bounds: Bounds,
   minSize: number
-): string => {
+): string | undefined => {
   const id = getPropertyValue(service, 'id');
   const compliance = service.profile || '';
 

@@ -1,12 +1,13 @@
-import { Bounds, Level0ImageServiceResource } from '../types';
+import type { Bounds, Level0ImageServiceResource } from '../types';
+import { fetchImageInfo } from './fetch-image-info';
 import { getThrottledLoader } from './throttled-loader';
-import { ImageInfo, Tile } from './types';
+import type { ImageInfo, Tile } from './types';
 
 const getTileUrl = (info: ImageInfo, bounds: Bounds): string => {
   const { x, y, w, h } = bounds;
   const tileWidth = info.tiles[0].width;
   const tileHeight = info.tiles[0].height|| info.tiles[0].width;
-  return `${info['@id']}/${x * tileWidth},${y * tileHeight},${w},${h}/${tileWidth},/0/default.jpg`;
+  return `${info.id}/${x * tileWidth},${y * tileHeight},${w},${h}/${tileWidth},/0/default.jpg`;
 }
 
 const getTilesForRegion = (info: ImageInfo, bounds: Bounds): Tile[] => {
@@ -38,7 +39,7 @@ const getTilesForRegion = (info: ImageInfo, bounds: Bounds): Tile[] => {
         y,
         width: effectiveWidth,
         height: effectiveHeight,
-        url: getTileUrl(info, { x, y, w: effectiveWidth, h: effectiveHeight })
+        url: getTileUrl(info, { x, y, w: effectiveWidth, h: effectiveHeight })
       });
     }
   }
@@ -47,7 +48,7 @@ const getTilesForRegion = (info: ImageInfo, bounds: Bounds): Tile[] => {
 }
 
 export const cropRegion = async (resource: Level0ImageServiceResource, bounds: Bounds): Promise<Blob> => {
-  const info = await fetch(resource.serviceUrl).then(res => res.json());
+  const info = await fetchImageInfo(resource);
 
   const tiles = getTilesForRegion(info, bounds);
   

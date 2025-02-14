@@ -1,8 +1,8 @@
-import { Canvas, IIIFExternalWebResource } from '@iiif/presentation-3';
+import type { Canvas, IIIFExternalWebResource } from '@iiif/presentation-3';
 import { Traverse } from '@iiif/parser';
 import { getPropertyValue } from './resource';
 import { getImageURLFromService, getRegionURL, isImageService, parseImageService } from './image-service';
-import { 
+import type { 
   CozyImageResource, 
   DynamicImageServiceResource, 
   ImageServiceResource, 
@@ -96,7 +96,7 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
           : [];
 
         const imageResources = bodies.filter(b => (b as IIIFExternalWebResource).type === 'Image');
-        images.push(...imageResources.map(toCozyImageResource));
+        images.push(...imageResources.map(body => toCozyImageResource(body as IIIFExternalWebResource)));
       }
     }]
   });

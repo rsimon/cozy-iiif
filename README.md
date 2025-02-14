@@ -14,7 +14,9 @@ A developer-friendly collection of abstractions and utilities built on top of th
 
 ## Installation
 
-Todo...
+```bash
+npm install cozy-iiif
+```
 
 ## Basic Usage
 

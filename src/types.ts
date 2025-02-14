@@ -21,7 +21,7 @@ export interface CozyManifest {
 
   readonly canvases: CozyCanvas[];
 
-  getLabel(locale?: string): string;
+  getLabel(locale?: string): string | undefined;
 
   getMetadata(locale?: string): CozyMetadata[];
 
