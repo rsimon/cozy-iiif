@@ -1,5 +1,7 @@
 # cozy-iiif
 
+**WORK IN PROGRESS**
+
 A developer-friendly collection of abstractions and utilities built on top of the IIIF Commons [@iiif/presentation-3](https://github.com/IIIF-Commons/presentation-3-types) and [@iiif/parser](https://github.com/IIIF-Commons/parser) libraries.
 
 ## Features

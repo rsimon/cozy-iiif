@@ -1,0 +1,37 @@
+{
+  "name": "cozy-iiif",
+  "version": "0.1.0-alpha",
+  "description": "A developer-friendly collection of abstractions and utilities built on top of @iiif/presentation-3 and @iiif/parser",
+  "license": "MIT",
+  "author": "Rainer Simon",
+  "keywords": [
+    "IIIF"
+  ],
+  "homepage": "https://github.com/rsimon/cozy-iiif#readme",
+  "bugs": {
+    "url": "https://github.com/rsimon/cozy-iiif/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsimon/cozy-iiif.git"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./level-0": "./dist/level-0/index.js"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0",
+    "vite-plugin-dts": "^4.5.0"
+  },
+  "dependencies": {
+    "@iiif/parser": "^2.1.7",
+    "@iiif/presentation-3": "^2.2.3",
+    "p-throttle": "^7.0.0"
+  }
+}
