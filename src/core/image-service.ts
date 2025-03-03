@@ -8,7 +8,7 @@ export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
 
   return t.startsWith('ImageService') || (
-    t === 'Service' && data.profile && data.profile.toString().includes('iiif.io/api/image/')
+    data.profile && data.profile.toString().includes('iiif.io/api/image/')
   );
 }
 
