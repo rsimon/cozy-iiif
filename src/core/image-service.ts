@@ -6,7 +6,10 @@ type ImageService = ImageService2 | ImageService3;
 
 export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
-  return t.startsWith('ImageService');
+
+  return t.startsWith('ImageService') || (
+    t === 'Service' && data.profile && data.profile.toString().includes('iiif.io/api/image/')
+  );
 }
 
 export const parseImageService = (service: Service) => {

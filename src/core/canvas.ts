@@ -54,6 +54,7 @@ const toCozyImageResource = (resource: IIIFExternalWebResource) => {
   const imageService = (resource.service || []).find(isImageService);
 
   const service = imageService ? parseImageService(imageService) : undefined; 
+
   if (service) {
     const image = {
       source: resource,
