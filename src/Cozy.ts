@@ -1,7 +1,6 @@
-import type { Canvas, Manifest } from '@iiif/presentation-3';
+import type { Canvas, Collection, Manifest } from '@iiif/presentation-3';
 import { convertPresentation2  } from '@iiif/parser/presentation-2';
 import { Traverse } from '@iiif/parser';
-import type { CozyCanvas, CozyManifest, CozyParseResult, ImageServiceResource } from './types';
 import { 
   getImages, 
   getLabel, 
@@ -11,6 +10,14 @@ import {
   normalizeServiceUrl, 
   parseImageService 
 } from './core';
+import type { 
+  CozyCanvas, 
+  CozyCollection, 
+  CozyCollectionItem, 
+  CozyManifest, 
+  CozyParseResult, 
+  ImageServiceResource 
+} from './types';
 
 export const Cozy = {
   
@@ -88,7 +95,13 @@ export const Cozy = {
       if (context.includes('presentation/2') || context.includes('presentation/3')) {
         const majorVersion = context.includes('presentation/2') ? 2 : 3;
 
-        return {
+        const type = getPropertyValue(json, 'type');
+
+        return type.includes('Collection') ? {
+          type: 'collection',
+          url: input,
+          resource: parseCollectionResource(json, majorVersion)
+        } : {
           type: 'manifest',
           url: input,
           resource: parseManifestResource(json, majorVersion)
@@ -123,6 +136,39 @@ export const Cozy = {
 
   }
 
+}
+
+const parseCollectionResource = (resource: any, majorVersion: number): CozyCollection => {
+
+  const parseV3 = (collection: Collection) => {
+    const items: any[] = [];
+
+    const modelBuilder = new Traverse({
+      manifest: [item => items.push(item)]
+    });
+
+    modelBuilder.traverseCollection(collection);
+
+    return items.map(source => ({
+      id: source.id,
+      type: source.type,
+      getLabel: getLabel(source),
+      source
+    }) as CozyCollectionItem);
+  }
+
+  const v3: Collection = majorVersion === 2 ? convertPresentation2(resource) : resource;
+
+  const items = parseV3(v3);
+
+  return {
+    source: v3,
+    id: v3.id,
+    majorVersion,
+    items,
+    getLabel: getLabel(v3),
+    getMetadata: getMetadata(v3)
+  };
 }
 
 const parseManifestResource = (resource: any, majorVersion: number): CozyManifest => {

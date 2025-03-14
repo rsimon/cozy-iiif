@@ -1,6 +1,7 @@
-import type { Manifest, Canvas, ImageService2, ImageService3, IIIFExternalWebResource } from '@iiif/presentation-3';
+import type { Manifest, Canvas, ImageService2, ImageService3, IIIFExternalWebResource, Collection } from '@iiif/presentation-3';
 
 export type CozyParseResult = 
+  | { type: 'collection', url: string, resource: CozyCollection }
   | { type: 'manifest'; url: string, resource: CozyManifest }
   | { type: 'iiif-image'; url: string, resource: CozyImageResource }
   | { type: 'plain-image'; url: string }
@@ -10,6 +11,34 @@ export type CozyParseResult =
       code: 'INVALID_URL' | 'INVALID_HTTP_RESPONSE' | 'FETCH_ERROR' | 'INVALID_MANIFEST' | 'UNSUPPORTED_FORMAT';
       message: string;
     };
+
+export interface CozyCollection {
+
+  readonly majorVersion: number;
+
+  readonly source: Collection;
+
+  readonly id: string;
+
+  readonly items: CozyCollectionItem[];
+
+  getLabel(locale?: string): string | undefined;
+
+  getMetadata(locale?: string): CozyMetadata[];
+
+}
+
+export interface CozyCollectionItem {
+
+  readonly id: string;
+
+  readonly type: string;
+
+  readonly source: any;
+
+  getLabel(locale?: string): string | undefined;
+
+}
 
 export interface CozyManifest {
 
@@ -49,9 +78,9 @@ export interface CozyCanvas {
 
 export interface CozyMetadata {
 
-  label: string;
+  readonly label: string;
 
-  value: string;
+  readonly value: string;
 
 }
 
@@ -67,31 +96,31 @@ interface BaseImageResource {
 
   readonly source: IIIFExternalWebResource;
 
-  type: 'static' | 'dynamic' | 'level0';
+  readonly type: 'static' | 'dynamic' | 'level0';
 
-  width: number;
+  readonly width: number;
 
-  height: number;
+  readonly height: number;
 
 }
 
 export interface StaticImageResource extends BaseImageResource {
 
-  type: 'static';
+  readonly type: 'static';
 
-  url: string;
+  readonly url: string;
 
 }
 
 export interface DynamicImageServiceResource extends BaseImageResource {
 
-  type: 'dynamic';
+  readonly type: 'dynamic';
 
-  service: ImageService2 | ImageService3;
+  readonly service: ImageService2 | ImageService3;
 
-  serviceUrl: string;
+  readonly serviceUrl: string;
 
-  majorVersion: number;
+  readonly majorVersion: number;
 
   getRegionURL(bounds: Bounds, minSize?: number): string;
 
@@ -99,28 +128,28 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
 export interface Level0ImageServiceResource extends BaseImageResource {
 
-  type: 'level0';
+  readonly type: 'level0';
 
-  majorVersion: number;
+  readonly majorVersion: number;
 
-  service: ImageService2 | ImageService3;
+  readonly service: ImageService2 | ImageService3;
 
-  serviceUrl: string;
+  readonly serviceUrl: string;
 
 }
 
 
 export interface ImageRequestOptions {
 
-  width?: number;
+  readonly width?: number;
 
-  height?: number;
+  readonly height?: number;
 
-  region?: 'full' | 'square' | { x: number; y: number; width: number; height: number };
+  readonly region?: 'full' | 'square' | { x: number; y: number; width: number; height: number };
 
-  quality?: 'default' | 'color' | 'gray' | 'bitonal';
+  readonly quality?: 'default' | 'color' | 'gray' | 'bitonal';
 
-  format?: 'jpg' | 'png' | 'gif' | 'webp';
+  readonly format?: 'jpg' | 'png' | 'gif' | 'webp';
 
 }
 
