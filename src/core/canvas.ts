@@ -91,7 +91,7 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
 
   const builder = new Traverse({
     annotation: [anno => {
-      if (anno.motivation === 'painting') {
+      if (anno.motivation === 'painting' || !anno.motivation) {
         const bodies = anno.body ? 
           Array.isArray(anno.body) ? anno.body : [anno.body] 
           : [];
