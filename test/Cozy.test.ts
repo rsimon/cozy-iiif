@@ -19,7 +19,8 @@ describe('Cozy', () => {
     expect(manifest.structure.length > 0).toBeTruthy();
 
     const tableOfContents = manifest.getTableOfContents();
-    console.log(tableOfContents);
+    expect(tableOfContents.length).toBe(1);
+    expect(tableOfContents[0].children.length).toBe(14);
   })
 
 });
