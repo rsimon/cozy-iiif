@@ -1,4 +1,4 @@
-import type { Manifest, Canvas, ImageService2, ImageService3, IIIFExternalWebResource, Collection } from '@iiif/presentation-3';
+import type { Manifest, Canvas, ImageService2, ImageService3, IIIFExternalWebResource, Collection, Range } from '@iiif/presentation-3';
 
 export type CozyParseResult = 
   | { type: 'collection', url: string, resource: CozyCollection }
@@ -50,9 +50,27 @@ export interface CozyManifest {
 
   readonly canvases: CozyCanvas[];
 
+  readonly structure: CozyRange[];
+
   getLabel(locale?: string): string | undefined;
 
   getMetadata(locale?: string): CozyMetadata[];
+
+}
+
+export interface CozyRange {
+
+  readonly source: Range;
+
+  readonly id: string;
+
+  readonly items: (CozyCanvas | CozyRange)[];
+
+  readonly canvases: CozyCanvas[];
+
+  readonly ranges: CozyRange[];
+
+  getLabel(locale?: string): string | undefined;
 
 }
 

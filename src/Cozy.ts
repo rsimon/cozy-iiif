@@ -1,4 +1,4 @@
-import type { Canvas, Collection, Manifest } from '@iiif/presentation-3';
+import type { Canvas, Collection, Manifest, Range } from '@iiif/presentation-3';
 import { convertPresentation2  } from '@iiif/parser/presentation-2';
 import { Traverse } from '@iiif/parser';
 import { 
@@ -16,6 +16,7 @@ import type {
   CozyCollectionItem, 
   CozyManifest, 
   CozyParseResult, 
+  CozyRange, 
   ImageServiceResource 
 } from './types';
 
@@ -174,15 +175,17 @@ const parseCollectionResource = (resource: any, majorVersion: number): CozyColle
 const parseManifestResource = (resource: any, majorVersion: number): CozyManifest => {
 
   const parseV3 = (manifest: Manifest) => {
-    const canvases: Canvas[] = [];
+    const sourceCanvases: Canvas[] = [];
+    const sourceRanges: Range[] = [];
 
     const modelBuilder = new Traverse({
-      canvas: [canvas => { if (canvas.items) canvases.push(canvas) }]
+      canvas: [canvas => { if (canvas.items) sourceCanvases.push(canvas) }],
+      range: [range => { if (range.type === 'Range')  sourceRanges.push(range) }]
     });
   
     modelBuilder.traverseManifest(manifest);
     
-    return canvases.map((c: Canvas) => {
+    const canvases = sourceCanvases.map((c: Canvas) => {
       const images = getImages(c);
       return {
         source: c,
@@ -195,17 +198,46 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
         getThumbnailURL: getThumbnailURL(c, images)
       } as CozyCanvas;
     });
+
+    const toRange = (source: Range): CozyRange => {
+      const items = source.items || [];
+
+      const nestedCanvases: CozyCanvas[] = items
+        .filter((item: any) => item.type === 'Canvas')
+        .map((item: any) => canvases.find(c => c.id === item.id)!)
+        .filter(Boolean);
+
+      const nestedRanges = items
+        .filter((item: any) => item.type === 'Range')
+        .map((item: any) => toRange(item));
+
+      const nestedItems = [...nestedCanvases, ...nestedRanges];
+        
+      return {
+        source,
+        id: source.id,
+        // Maintain original order
+        items: items.map((i: any) => nestedItems.find(cozy => cozy.id === i.id)),
+        canvases,
+        ranges: nestedRanges,
+        getLabel: getLabel(source)
+      } as CozyRange;
+    }
+
+    const ranges = sourceRanges.map((source: Range) => toRange(source));
+    return { canvases, ranges };
   }
 
   const v3: Manifest = majorVersion === 2 ? convertPresentation2(resource) : resource;
 
-  const canvases = parseV3(v3);
+  const { canvases, ranges } = parseV3(v3);
 
   return {
     source: v3,
     id: v3.id,
     majorVersion,
     canvases,
+    structure: ranges,
     getLabel: getLabel(v3),
     getMetadata: getMetadata(v3)
   }
