@@ -54,6 +54,8 @@ export interface CozyManifest {
 
   getLabel(locale?: string): string | undefined;
 
+  getTableOfContents(): CozyTOCNode[];
+
   getMetadata(locale?: string): CozyMetadata[];
 
 }
@@ -99,6 +101,22 @@ export interface CozyMetadata {
   readonly label: string;
 
   readonly value: string;
+
+}
+
+export interface CozyTOCNode {
+
+  readonly id: string;
+
+  readonly type: 'range' | 'canvas';
+
+  getLabel(locale?: string): string | undefined;
+
+  children: CozyTOCNode[];
+
+  parent?: CozyTOCNode;
+
+  level: number;
 
 }
 

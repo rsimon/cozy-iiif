@@ -6,6 +6,7 @@ import {
   getLabel, 
   getMetadata, 
   getPropertyValue, 
+  getTableOfContents,
   getThumbnailURL, 
   normalizeServiceUrl, 
   parseImageService 
@@ -180,7 +181,7 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
 
     const modelBuilder = new Traverse({
       canvas: [canvas => { if (canvas.items) sourceCanvases.push(canvas) }],
-      range: [range => { if (range.type === 'Range')  sourceRanges.push(range) }]
+      range: [range => { if (range.type === 'Range') sourceRanges.push(range) }]
     });
   
     modelBuilder.traverseManifest(manifest);
@@ -218,7 +219,7 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
         id: source.id,
         // Maintain original order
         items: items.map((i: any) => nestedItems.find(cozy => cozy.id === i.id)),
-        canvases,
+        canvases: nestedCanvases,
         ranges: nestedRanges,
         getLabel: getLabel(source)
       } as CozyRange;
@@ -239,7 +240,8 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
     canvases,
     structure: ranges,
     getLabel: getLabel(v3),
-    getMetadata: getMetadata(v3)
+    getMetadata: getMetadata(v3),
+    getTableOfContents: getTableOfContents(ranges)
   }
 }
 

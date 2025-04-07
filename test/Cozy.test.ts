@@ -15,8 +15,11 @@ describe('Cozy', () => {
     expect(result.type).toBe('manifest');
     expect('resource' in result).toBeTruthy();
 
-    const resource = (result as any).resource as CozyManifest;
-    expect(resource.structure.length > 0).toBeTruthy();
+    const manifest = (result as any).resource as CozyManifest;
+    expect(manifest.structure.length > 0).toBeTruthy();
+
+    const tableOfContents = manifest.getTableOfContents();
+    console.log(tableOfContents);
   })
 
 });
