@@ -208,7 +208,7 @@ const annotations: Annotation[] = [{
 // Generates a new CozyManifest with annotations from an original CozyManifest.
 const updated = importAnnotations(original, annotations);
 
-// The .source field will give you raw data manifest JSON–with annotations!
+// The source field has the raw manifest JSON (annotations included!)
 console.log(updated.source);
 ```
 
