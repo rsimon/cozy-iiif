@@ -70,7 +70,7 @@ console.log(manifest.getLabel('de'));
 // Metadata as normalized CozyMetada[]
 console.log(manifest.getMetadata());
 
-// The raw source data
+// The raw source data, @iiif/presentation-3 typed
 console.log(manifest.source);
 ```
 
