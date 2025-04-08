@@ -34,7 +34,10 @@ const getAnnotationPageId = (canvas: CozyCanvas, namespace?: string) => {
   }
 }
 
-export const importAnnotations = (canvas: CozyCanvas, annotations: Annotation[], namespace?: string) => {
+/** 
+ * Will blindy attach the annotations to this canvas.
+ */
+const importAnnotationsToCanvas = (canvas: CozyCanvas, annotations: Annotation[], namespace?: string) => {
   const page = {
     id: getAnnotationPageId(canvas, namespace),
     type: 'AnnotationPage',
@@ -42,7 +45,10 @@ export const importAnnotations = (canvas: CozyCanvas, annotations: Annotation[],
   }
 
   return {
-    source: canvas.source,
+    source: {
+      ...canvas.source,
+      annotations: [...canvas.annotations, page]
+    },
     id: canvas.id,
     width: canvas.width,
     height: canvas.height,
@@ -53,3 +59,57 @@ export const importAnnotations = (canvas: CozyCanvas, annotations: Annotation[],
     getThumbnailURL: canvas.getThumbnailURL
   } as CozyCanvas;
 }
+
+/**
+ * Will use 'source' information from the annotation targets to associate annotations with the right
+ * canvases.
+ */
+const importAnnotationsToManifest = (manifest: CozyManifest, annotations: Annotation[], namespace?: string) => {
+  const getSource = (annotation: Annotation) => {
+    const target = annotation.target;
+    if (!target) return;
+
+    if (typeof target === 'string')
+      return target.substring(0, target.indexOf('#'));
+    else
+      return (target as any).source; 
+  }
+
+  const bySource = annotations.reduce<Record<string, Annotation[]>>((acc, annotation) => {
+    const source = getSource(annotation);
+    if (!source) return acc;
+    
+    if (!acc[source]) acc[source] = [];
+    acc[source].push(annotation);
+
+    return acc;
+  }, {});
+
+  const canvases = manifest.canvases.map(canvas => {
+    const toImport = bySource[canvas.id] || [];
+    return toImport.length > 0 ? importAnnotationsToCanvas(canvas, toImport, namespace) : canvas;
+  });
+
+  return {
+    source: {
+      ...manifest.source,
+      items: canvases.map(c => c.source)
+    },
+    id: manifest.id,
+    majorVersion: manifest.majorVersion,
+    canvases,
+    structure: manifest.structure,
+    getLabel: manifest.getLabel,
+    getMetadata: manifest.getMetadata,
+    getTableOfContents: manifest.getTableOfContents
+  }
+}
+
+export const importAnnotations = <T extends CozyManifest | CozyCanvas>(
+  resource: T, 
+  annotations: Annotation[], 
+  namespace?: string
+): T extends CozyCanvas ? CozyCanvas : CozyManifest =>
+  resource.source.type === 'Canvas' 
+    ? importAnnotationsToCanvas(resource as CozyCanvas, annotations, namespace) as T extends CozyCanvas ? CozyCanvas : CozyManifest
+    : importAnnotationsToManifest(resource as CozyManifest, annotations, namespace) as T extends CozyCanvas ? CozyCanvas : CozyManifest;
