@@ -116,6 +116,10 @@ export interface CozyTOCNode {
 
   children: CozyTOCNode[];
 
+  canvases: CozyCanvas[];
+
+  ranges: CozyRange[];
+
   parent?: CozyTOCNode;
 
   level: number;

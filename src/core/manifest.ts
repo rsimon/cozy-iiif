@@ -8,6 +8,8 @@ export const getTableOfContents = (ranges: CozyRange[]) => () => {
       type: 'range',
       getLabel: range.getLabel,
       children: [],
+      canvases: [],
+      ranges: [],
       parent,
       level
     };
@@ -15,14 +17,21 @@ export const getTableOfContents = (ranges: CozyRange[]) => () => {
     if (range.items && range.items.length > 0) {
       range.items.forEach(item => {
         if (item.source.type === 'Range') {
-          const childNode = buildTree(item as CozyRange, node, level + 1);
+          const r = item as CozyRange;
+          const childNode = buildTree(r, node, level + 1);
+          
           node.children.push(childNode);
+
+          // TODO flatten item's ranges and canvases!
+
         } else {
           node.children.push({
             id: item.id,
             type: 'canvas',
             getLabel: item.getLabel,
             children: [],
+            canvases: [],
+            ranges: [],
             parent: node,
             level: level + 1
           });
