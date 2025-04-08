@@ -7,7 +7,7 @@ A developer-friendly API for working with IIIF resources. Built on top of the II
 - Resource identification for any URL: IIIF collection and presentation manifests, image services, static image, and more.
 - Developer-friendly TypeScript API for parsing and working with IIIF resources.
 - Seamless upgrade from IIIF Presentation API v2 to v3 (using `@iiif/parser` under the hood).
-- Preserves access to underlying `@iiif-presentation/3` types.
+- Preserves access to underlying `@iiif/presentation-3` types.
 - Helpers for stitching thumbnails and cropping regions from IIIF Level 0 tilesets.
 - Helpers for adding annotations to Canvases and Presentation manifests.
 
