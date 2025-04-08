@@ -74,7 +74,7 @@ console.log(manifest.getMetadata());
 ### Thumbnail Helper
 
 CozyCanvas has a simple helper for getting a Thumbnail URL. The URL
-will use the `thumbnail` property if available, or the image service
+will use the `thumbnail` property of the original resource if available, or the image service
 otherwise.
 
 ```ts
