@@ -1,4 +1,4 @@
-import type { Manifest, Canvas, ImageService2, ImageService3, IIIFExternalWebResource, Collection, Range } from '@iiif/presentation-3';
+import type { Manifest, Canvas, ImageService2, ImageService3, IIIFExternalWebResource, Collection, Range, Annotation, AnnotationPage } from '@iiif/presentation-3';
 
 export type CozyParseResult = 
   | { type: 'collection', url: string, resource: CozyCollection }
@@ -87,6 +87,8 @@ export interface CozyCanvas {
   readonly height: number;
 
   readonly images: CozyImageResource[];
+
+  readonly annotations: AnnotationPage[];
 
   getLabel(locale?: string): string;
 

@@ -21,7 +21,7 @@ describe('Cozy', () => {
     const tableOfContents = manifest.getTableOfContents();
     expect(tableOfContents.length).toBe(1);
     expect(tableOfContents[0].children.length).toBe(14);
-  })
+  });
 
 });
 
