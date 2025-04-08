@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { Annotation } from '@iiif/presentation-3';
 import { Cozy, CozyManifest } from '../../src';
 
 import { ANNOTATION, SINGLE_CANVAS_NO_ANNOTATIONS,  } from './fixtures';
-import { Annotation } from '@iiif/presentation-3';
 
 describe('import-annotations', () => {
 
