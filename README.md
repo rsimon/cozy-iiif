@@ -69,6 +69,9 @@ console.log(manifest.getLabel('de'));
 
 // Metadata as normalized CozyMetada[]
 console.log(manifest.getMetadata());
+
+// The raw source data
+console.log(manifest.source);
 ```
 
 ### Thumbnail Helper
@@ -104,9 +107,9 @@ const logTOCNode = (node: CozyTOCNode) => {
 root.forEach(logTOCNode);
 ```
 
-### Working with different Image Types and Levels
+### Image Types and Levels
 
-The **CozyImageResource** type provides a helper property for identify the type and level of 
+The **CozyImageResource** provides a helper properties that identify the type and level of 
 an image.
 
 ```ts
