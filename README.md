@@ -181,6 +181,31 @@ if (firstImage.type === 'level0') {
 }
 ```
 
+### Annotation Helpers
+
+Utilities for working with annotations on on Canvases.
+
+```ts
+import type { Annotation } from '@iiif/presentation-3';
+import { importAnnotations } from 'cozy-iiif/helpers';
+
+const annotations: Annotation[] = [{
+  id: 'https://iiif.io/api/cookbook/recipe/0021-tagging/annotation/p0002-tag',
+  type: 'Annotation',
+  motivation: 'tagging',
+  body: {
+    type: 'TextualBody',
+    value: 'Gänseliesel-Brunnen',
+    language: 'de',
+    format: "text/plain"
+  },
+  target: 'https://iiif.io/api/cookbook/recipe/0021-tagging/canvas/p1#xywh=265,661,1260,1239'
+}]
+
+// Generates a new CozyManifest with annotations from an original CozyManifest.
+const updated = importAnnotations(original, annotations);
+```
+
 ## License
 
 MIT License - see the [LICENSE](LICENSE) file for details.

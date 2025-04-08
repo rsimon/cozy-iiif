@@ -1,7 +1,6 @@
 import type { Canvas, Collection, Manifest, Range } from '@iiif/presentation-3';
 import { convertPresentation2  } from '@iiif/parser/presentation-2';
 import { Traverse } from '@iiif/parser';
-import * as Helpers from './helpers';
 import { 
   getImages, 
   getLabel, 
@@ -261,4 +260,4 @@ const parseImageResource = (resource: any) => {
   }
 }
 
-export const Cozy = { parse, parseURL, Helpers };
+export const Cozy = { parse, parseURL };

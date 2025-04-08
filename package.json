@@ -24,6 +24,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./helpers": "./dist/helpers/index.js",
     "./level-0": "./dist/level-0/index.js"
   },
   "devDependencies": {

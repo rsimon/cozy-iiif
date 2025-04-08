@@ -8,6 +8,7 @@ export default defineConfig({
     lib: {
       entry: {
         'index': resolve(__dirname, 'src/index.ts'),
+        'helpers/index': resolve(__dirname, 'src/helpers/index.ts'),
         'level-0/index': resolve(__dirname, 'src/level-0/index.ts'),
       },
       formats: ['es']
