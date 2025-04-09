@@ -119,6 +119,8 @@ export interface CozyTOC {
 
   root: CozyTOCNode[];
 
+  getBreadcrumbs(id: string): CozyTOCNode[];
+
   getNode(id: string): CozyTOCNode | undefined;
 
 }

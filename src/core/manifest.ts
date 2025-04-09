@@ -71,5 +71,20 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
 
   const getNode = (id: string) => index.get(id);
 
-  return { root, getNode };
+  const getBreadcrumbs = (id: string) => {
+    const thisNode = index.get(id);
+    if (!thisNode) return [];
+
+    const addParent = (node: CozyTOCNode, breadcrumbs: CozyTOCNode[] = []) => {
+      if (node.parent) {
+        return addParent(node.parent, [node, ...breadcrumbs]);
+      } else {
+        return breadcrumbs;
+      }
+    }
+
+    return addParent(thisNode);
+  }
+
+  return { root, getBreadcrumbs, getNode };
 }
