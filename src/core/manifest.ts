@@ -76,9 +76,6 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     if (!thisNode) return [];
 
     const addParent = (node: CozyTOCNode, breadcrumbs: CozyTOCNode[] = []) => {
-      console.log('adding for', node.getLabel());
-      console.log('has parent', node.parent?.getLabel());
-
       if (node.parent) {
         return addParent(node.parent, [node, ...breadcrumbs]);
       } else {
