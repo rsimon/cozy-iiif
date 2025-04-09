@@ -10,7 +10,7 @@ describe('Cozy', () => {
     expect(result.type).toBe('collection');
   });
 
-  it('should parse strctures in presentation manifests', async () => {
+  it('should parse structures in presentation manifests', async () => {
     const result = await Cozy.parseURL(WITH_STRUCTURES);
     expect(result.type).toBe('manifest');
     expect('resource' in result).toBeTruthy();
@@ -19,8 +19,8 @@ describe('Cozy', () => {
     expect(manifest.structure.length > 0).toBeTruthy();
 
     const tableOfContents = manifest.getTableOfContents();
-    expect(tableOfContents.length).toBe(1);
-    expect(tableOfContents[0].children.length).toBe(14);
+    expect(tableOfContents.root.length).toBe(1);
+    expect(tableOfContents.root[0].children.length).toBe(14);
   });
 
 });

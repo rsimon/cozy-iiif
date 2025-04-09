@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Annotation } from '@iiif/presentation-3';
 import { Cozy, CozyManifest } from '../../src';
+import { importAnnotations } from '../../src/helpers';
 
 import { 
   ANNOTATIONS, 
@@ -21,7 +22,7 @@ describe('import-annotations', () => {
 
     const annotations = ANNOTATIONS as Annotation[];
 
-    const modified = Cozy.Helpers.importAnnotations(firstCanvas, annotations)
+    const modified = importAnnotations(firstCanvas, annotations)
     expect(modified.annotations.length).toBe(1);
   });
 
@@ -37,7 +38,7 @@ describe('import-annotations', () => {
 
     const annotations = ANNOTATIONS as Annotation[];
 
-    const modified = Cozy.Helpers.importAnnotations(manifest, annotations, 'cozy');
+    const modified = importAnnotations(manifest, annotations, 'cozy');
     expect(modified.canvases[0].annotations.length).toBe(1);
     expect(modified.canvases[1].annotations.length).toBe(1);
   });
