@@ -112,17 +112,19 @@ export interface CozyTOCNode {
 
   readonly type: 'range' | 'canvas';
 
+  readonly source: CozyRange | CozyCanvas;
+
+  readonly children: CozyTOCNode[];
+
+  readonly navItems: CozyCanvas[]; 
+
+  readonly navSections: CozyRange[];
+
+  readonly parent?: CozyTOCNode;
+
+  readonly level: number;
+
   getLabel(locale?: string): string | undefined;
-
-  children: CozyTOCNode[];
-
-  canvases: CozyCanvas[];
-
-  ranges: CozyRange[];
-
-  parent?: CozyTOCNode;
-
-  level: number;
 
 }
 

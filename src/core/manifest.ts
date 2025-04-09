@@ -1,4 +1,4 @@
-import type { CozyRange, CozyTOCNode } from '../types';
+import type { CozyCanvas, CozyRange, CozyTOCNode } from '../types';
 
 export const getTableOfContents = (ranges: CozyRange[]) => () => {
 
@@ -6,12 +6,13 @@ export const getTableOfContents = (ranges: CozyRange[]) => () => {
     const node: CozyTOCNode = {
       id: range.id,
       type: 'range',
-      getLabel: range.getLabel,
+      source: range,
       children: [],
-      canvases: [],
-      ranges: [],
+      navItems: [],
+      navSections: [],
       parent,
-      level
+      level,
+      getLabel: range.getLabel,
     };
     
     if (range.items && range.items.length > 0) {
@@ -19,26 +20,45 @@ export const getTableOfContents = (ranges: CozyRange[]) => () => {
         if (item.source.type === 'Range') {
           const r = item as CozyRange;
           const childNode = buildTree(r, node, level + 1);
-          
           node.children.push(childNode);
-
-          // TODO flatten item's ranges and canvases!
-
         } else {
+          // This child is Canvas, i.e. a TOCNode with
+          // no further children.
           node.children.push({
             id: item.id,
             type: 'canvas',
-            getLabel: item.getLabel,
+            source: item as CozyCanvas,
             children: [],
-            canvases: [],
-            ranges: [],
+            navItems: [],
+            navSections: [],
             parent: node,
-            level: level + 1
+            level: level + 1,
+            getLabel: item.getLabel
           });
         }
       });
     }
+
+    // From the actual child ToC Nodes, infer the "logical" child navItems
+    // (canvases) and navSections (ranges).
+    const navChildren = node.children.map(n => {
+      if (n.type === 'canvas') {
+        // An actual leaf node
+        return n.source as CozyCanvas;
+      } else if (n.children.length === 1 && n.children[0].type === 'canvas') {
+        // A range with a single canvas child - logical leaf node!
+        return n.children[0].source as CozyCanvas;
+      } else {
+        return n.source as CozyRange;
+      }
+    });
+
+    const navItems = navChildren.filter(c => c.source.type === 'Canvas') as CozyCanvas[];
+    const navSections = navChildren.filter(c => c.source.type === 'Range') as CozyRange[];
     
+    node.navItems.push(...navItems);
+    node.navSections.push(...navSections);
+
     return node;
   };
 
