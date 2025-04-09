@@ -97,14 +97,14 @@ based on the manifest's `structures` property.
 
 ```ts
 // Returns a list of CozyTOCNode objects.
-const root = manifest.getTableOfContents(); 
+const toc = manifest.getTableOfContents(); 
 
 const logTOCNode = (node: CozyTOCNode) => {
   console.log(node.getLabel());
   node.children.forEach(logTOCNode);
 }
     
-root.forEach(logTOCNode);
+root.forEach(logTOCNode.root);
 ```
 
 ### Image Types and Levels
