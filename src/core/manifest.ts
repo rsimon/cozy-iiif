@@ -26,7 +26,7 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
         } else {
           // This child is Canvas, i.e. a TOCNode with
           // no further children.
-          node.children.push({
+          const canvasChild: CozyTOCNode = {
             id: item.id,
             type: 'canvas',
             source: item as CozyCanvas,
@@ -36,7 +36,11 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
             parent: node,
             level: level + 1,
             getLabel: item.getLabel
-          });
+          };
+
+          // Add leaf node to children & lookup index
+          node.children.push(canvasChild);
+          index.set(canvasChild.id, canvasChild);
         }
       });
     }
