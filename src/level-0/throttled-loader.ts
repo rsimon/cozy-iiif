@@ -53,7 +53,6 @@ const updateThrottleConfig = (opts?: Partial<ThrottleConfig>) => {
     (opts.limit && opts.limit !== current.limit) ||
     (opts.interval && opts.interval !== current.interval)
   ) {
-    console.log('updating throttle config!');
     throttleManager.setConfig({ ...current, ...opts });
   }
 }

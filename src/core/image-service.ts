@@ -100,7 +100,6 @@ export const getRegionURL = (
   if (image.type === 'dynamic') {
     return getRegionURLFromService(image.service, bounds, minSize);
   } else {
-    // TODO
-    console.error('Level 0 or static image canvas: unspported');
+    console.error('Level 0 or static image canvas: unsupported');
   }
 }
