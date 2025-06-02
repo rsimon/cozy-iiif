@@ -1,7 +1,6 @@
 import type { CozyCanvas, CozyRange, CozyTOC, CozyTOCNode } from '../types';
 
 export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
-
   const index = new Map<string, CozyTOCNode>();
 
   const buildTree = (range: CozyRange, parent: CozyTOCNode | undefined, level: number = 0): CozyTOCNode => {
@@ -90,5 +89,10 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     return addParent(thisNode);
   }
 
-  return { root, getBreadcrumbs, getNode };
+  const enumerateNodes = (type?: 'range' | 'canvas'): CozyTOCNode[] => {
+    const all = Array.from(index.values());
+    return type ? all.filter(n => n.type === type) : all;
+  }
+
+  return { root, enumerateNodes, getBreadcrumbs, getNode };
 }

@@ -119,6 +119,8 @@ export interface CozyTOC {
 
   root: CozyTOCNode[];
 
+  enumerateNodes(type?: 'range' | 'canvas'): CozyTOCNode[];
+
   getBreadcrumbs(id: string): CozyTOCNode[];
 
   getNode(id: string): CozyTOCNode | undefined;
