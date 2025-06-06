@@ -99,6 +99,8 @@ export interface CozyCanvas {
 
   readonly annotations: AnnotationPage[];
 
+  getImageURL(minSize?: number): string;
+
   getLabel(locale?: string): string;
 
   getMetadata(locale?: string): CozyMetadata[];
