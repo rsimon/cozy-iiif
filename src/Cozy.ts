@@ -3,6 +3,7 @@ import { convertPresentation2  } from '@iiif/parser/presentation-2';
 import { Traverse } from '@iiif/parser';
 import { 
   getImages, 
+  getImageURL, 
   getLabel, 
   getMetadata, 
   getPropertyValue, 
@@ -193,6 +194,7 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
         height: c.height,
         images,
         annotations: (c.annotations || []),
+        getImageURL: getImageURL(c, images),
         getLabel: getLabel(c),
         getMetadata: getMetadata(c),
         getThumbnailURL: getThumbnailURL(c, images)

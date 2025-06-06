@@ -42,6 +42,26 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
   }
 }
 
+export const getImageURL = (canvas: Canvas, images: CozyImageResource[] = []) => (minSize = 800) => {
+  const { width, height } = canvas;
+
+  if (!width || !height) return;
+
+  const aspect = width / height;
+  const isPortrait = aspect < 1;
+  
+  const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
+  const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
+
+  for (const image of images) {
+    if (image.type === 'dynamic' || image.type === 'level0') {
+      return getImageURLFromService(image.service, w, h);
+    } else if (image.type === 'static') {
+      return image.url;
+    }    
+  }
+}
+
 export const normalizeServiceUrl = (url: string) =>
   url.endsWith('/info.json') ? url : `${url.endsWith('/') ? url : `${url}/`}info.json`;
 
