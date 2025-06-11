@@ -1,3 +1,4 @@
+import { imageSize } from 'image-size';
 import type { Canvas, IIIFExternalWebResource } from '@iiif/presentation-3';
 import { Traverse } from '@iiif/parser';
 import { getPropertyValue } from './resource';
@@ -65,6 +66,30 @@ export const getImageURL = (canvas: Canvas, images: CozyImageResource[] = []) =>
 export const normalizeServiceUrl = (url: string) =>
   url.endsWith('/info.json') ? url : `${url.endsWith('/') ? url : `${url}/`}info.json`;
 
+const getPixelSizeFromServiceUrl = (serviceUrl: string) => () =>
+  fetch(serviceUrl).then(res => res.json()).then(data => {
+    const width: number = data.width;
+    const height: number = data.height;
+    return (width !== undefined && height !== undefined) ? { width, height } : undefined;
+  });
+
+const getStaticImagePixelSize = (url: string) => () => {
+  const isBrowser = typeof window !== 'undefined';
+
+  return fetch(url).then(res => res.blob()).then(blob => {
+    if (isBrowser) {
+      return createImageBitmap(blob).then(bitmap => {
+        const { width, height } = bitmap;
+        bitmap.close(); 
+        return { width, height }
+      });
+    } else {
+      return blob.arrayBuffer().then(buffer => 
+        imageSize(new Uint8Array(buffer)));
+    }
+  });
+}
+
 const toCozyImageResource = (resource: IIIFExternalWebResource) => {
   const { format, height, width } = resource;
 
@@ -75,6 +100,8 @@ const toCozyImageResource = (resource: IIIFExternalWebResource) => {
   const service = imageService ? parseImageService(imageService) : undefined; 
 
   if (service) {
+    const serviceUrl = normalizeServiceUrl(getPropertyValue<string>(imageService, 'id'));
+
     const image = {
       source: resource,
       type: service.profileLevel === 0 ? 'level0' : 'dynamic',
@@ -82,7 +109,8 @@ const toCozyImageResource = (resource: IIIFExternalWebResource) => {
       width,
       height,
       majorVersion: service.majorVersion,
-      serviceUrl: normalizeServiceUrl(getPropertyValue<string>(imageService, 'id'))
+      serviceUrl,
+      getPixelSize: getPixelSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
 
     if (service.profileLevel === 0) {
@@ -100,7 +128,8 @@ const toCozyImageResource = (resource: IIIFExternalWebResource) => {
       width,
       height,
       url: id,
-      format
+      format,
+      getPixelSize: getStaticImagePixelSize(id)
     } as StaticImageResource;
   }
 } 

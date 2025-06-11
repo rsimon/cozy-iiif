@@ -169,6 +169,8 @@ interface BaseImageResource {
 
   readonly height: number;
 
+  getPixelSize(): Promise<{ width: number, height: number }>;
+
 }
 
 export interface StaticImageResource extends BaseImageResource {

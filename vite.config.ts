@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
@@ -7,11 +6,14 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        'index': resolve(__dirname, 'src/index.ts'),
-        'helpers/index': resolve(__dirname, 'src/helpers/index.ts'),
-        'level-0/index': resolve(__dirname, 'src/level-0/index.ts'),
+        'index': './src/index.ts',
+        'helpers/index': './src/helpers/index.ts',
+        'level-0/index': './src/level-0/index.ts',
       },
       formats: ['es']
+    },
+    rollupOptions: {
+      external: ['image-size']
     }
   }
 });

@@ -35,6 +35,7 @@
   "dependencies": {
     "@iiif/parser": "2.1.7",
     "@iiif/presentation-3": "^2.2.3",
+    "image-size": "^2.0.2",
     "p-throttle": "^7.0.0",
     "uuid": "^11.1.0"
   }
