@@ -1,12 +1,11 @@
 import type {
   Manifest, 
-  Canvas, 
-  ImageService2, 
-  ImageService3, 
+  Canvas,
   IIIFExternalWebResource, 
   Collection, 
   Range, 
-  AnnotationPage 
+  AnnotationPage, 
+  Service
 } from '@iiif/presentation-3';
 
 export type CozyParseResult = 
@@ -169,6 +168,8 @@ interface BaseImageResource {
 
   readonly height: number;
 
+  getImageURL(minSize?: number): string;
+
   getPixelSize(): Promise<{ width: number, height: number }>;
 
 }
@@ -185,7 +186,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly type: 'dynamic';
 
-  readonly service: ImageService2 | ImageService3;
+  readonly service: Service;
 
   readonly serviceUrl: string;
 
@@ -201,7 +202,7 @@ export interface Level0ImageServiceResource extends BaseImageResource {
 
   readonly majorVersion: number;
 
-  readonly service: ImageService2 | ImageService3;
+  readonly service: Service;
 
   readonly serviceUrl: string;
 

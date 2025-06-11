@@ -135,6 +135,9 @@ console.log(image.getRegionURL(bounds));
 // With custom minimum shorted dimension
 console.log(image.getRegionURL(bounds, 800));
 
+// Full image with custom minimum shorted dimension
+console.log(image.getImageURL(800));
+
 // Resolves the actual image pixel size from the info.json
 // or the image file (which may **differ**) from the canvas size!
 console.log(image.getPixelSize());

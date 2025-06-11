@@ -2,8 +2,7 @@ import type { Canvas, Collection, Manifest, Range } from '@iiif/presentation-3';
 import { convertPresentation2  } from '@iiif/parser/presentation-2';
 import { Traverse } from '@iiif/parser';
 import { 
-  getImages, 
-  getImageURL, 
+  getImages,
   getLabel, 
   getMetadata, 
   getPropertyValue, 
@@ -15,7 +14,7 @@ import {
 import type { 
   CozyCanvas, 
   CozyCollection, 
-  CozyCollectionItem, 
+  CozyCollectionItem,
   CozyManifest, 
   CozyParseResult, 
   CozyRange, 
@@ -194,7 +193,7 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
         height: c.height,
         images,
         annotations: (c.annotations || []),
-        getImageURL: getImageURL(c, images),
+        getImageURL: images.length > 0 ? images[0].getImageURL : () => undefined,
         getLabel: getLabel(c),
         getMetadata: getMetadata(c),
         getThumbnailURL: getThumbnailURL(c, images)

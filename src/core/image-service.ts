@@ -36,7 +36,7 @@ export const parseImageService = (service: Service) => {
 }
 
 export const getImageURLFromService = (
-  service: ImageService2 | ImageService3,
+  service: Service,
   width: number,
   height: number
 ): string => {
@@ -66,7 +66,7 @@ export const getImageURLFromService = (
 }
 
 export const getRegionURLFromService = (
-  service: ImageService2 | ImageService3,
+  service: Service,
   bounds: Bounds,
   minSize: number
 ): string | undefined => {
