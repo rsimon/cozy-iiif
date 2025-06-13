@@ -1,16 +1,8 @@
 import type { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
 import { getPropertyValue } from './resource';
-import type { Bounds, CozyImageResource } from '../types';
+import type { Bounds, CozyImageResource, GetRegionURLOpts } from '../types';
 
 type ImageService = ImageService2 | ImageService3;
-
-interface GetRegionURLOpts {
-
-  minSize?: number;
-
-  maxSize?: number;
-
-}
 
 export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
