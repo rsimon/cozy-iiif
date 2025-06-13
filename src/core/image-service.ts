@@ -4,6 +4,14 @@ import type { Bounds, CozyImageResource } from '../types';
 
 type ImageService = ImageService2 | ImageService3;
 
+interface GetRegionURLOpts {
+
+  minSize?: number;
+
+  maxSize?: number;
+
+}
+
 export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
 
@@ -68,7 +76,7 @@ export const getImageURLFromService = (
 export const getRegionURLFromService = (
   service: Service,
   bounds: Bounds,
-  minSize: number
+  opts: GetRegionURLOpts = { minSize: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
   const compliance = service.profile || '';
@@ -76,16 +84,32 @@ export const getRegionURLFromService = (
   const isLevel0 = typeof compliance === 'string' &&
     (compliance.includes('level0') || compliance.includes('level:0'));
 
-  // TODO
-  if (isLevel0) return;
+  if (isLevel0) {
+    console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
+    return;
+  }
 
   const { x, y, w , h } = bounds;
+  const { minSize = 400, maxSize } = opts;
 
   const aspect = w / h;
   const isPortrait = aspect < 1;
   
-  const height = Math.ceil(isPortrait ? minSize / aspect : minSize);
-  const width = Math.ceil(isPortrait ? minSize : minSize / aspect);
+  let height = Math.ceil(isPortrait ? minSize / aspect : minSize);
+  let width = Math.ceil(isPortrait ? minSize : minSize / aspect);
+
+  // Apply maxSize constraint if specified
+  if (maxSize) {
+    if (width > maxSize || height > maxSize) {
+      if (isPortrait) {
+        height = Math.min(height, maxSize);
+        width = Math.ceil(height * aspect);
+      } else {
+        width = Math.min(width, maxSize);
+        height = Math.ceil(width / aspect);
+      }
+    }
+  }
 
   const regionParam = `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
   return `${id}/${regionParam}/!${width},${height}/0/default.jpg`;
@@ -95,10 +119,10 @@ export const getRegionURL = (
   image: CozyImageResource
 ) => (
   bounds: Bounds,
-  minSize = 400
+  opts: GetRegionURLOpts = { minSize: 400 }
 ): string | undefined => {
   if (image.type === 'dynamic') {
-    return getRegionURLFromService(image.service, bounds, minSize);
+    return getRegionURLFromService(image.service, bounds, opts);
   } else {
     console.error('Level 0 or static image canvas: unsupported');
   }
