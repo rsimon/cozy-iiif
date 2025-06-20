@@ -80,8 +80,9 @@ const parseURL = async (input: string): Promise<CozyParseResult> => {
 }
 
 const parse = (json: any, url?: string): CozyParseResult => {
-  const context = Array.isArray(json['@context'])
-    ? json['@context'].find(str => str.includes('iiif.io/api/'))
+  const context: string = Array.isArray(json['@context'])
+    ? json['@context'].find(str => 
+        str.includes('iiif.io/api/presentation') || str.includes('iiif.io/api/image'))
     : json['@context'];
 
   if (!context) {
