@@ -124,9 +124,9 @@ export interface CozyTOC {
 
   getBreadcrumbs(id: string): CozyTOCNode[];
 
-  getNode(id: string): CozyTOCNode | undefined;
+  getNavParent(canvasId: string): CozyRange | undefined;
 
-  getParentRange(canvasId: string): CozyTOCNode | undefined;
+  getNode(id: string): CozyTOCNode | undefined;
 
 }
 

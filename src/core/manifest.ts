@@ -23,7 +23,7 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
           const childNode = buildTree(r, node, level + 1);
           node.children.push(childNode);
         } else {
-          // This child is Canvas, i.e. a TOCNode with
+          // This child is a Canvas, i.e. a TOCNode with
           // no further children.
           const canvasChild: CozyTOCNode = {
             id: item.id,
@@ -89,7 +89,7 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     return addParent(thisNode);
   }
 
-  const getParentRange = (canvasId: string) => {
+  const getNavParent = (canvasId: string) => {
     const node = index.get(canvasId);
 
     // Canvas node doesn't exist
@@ -98,7 +98,18 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     // Canvas node doesn't have a range parent
     if (!(node.parent?.type === 'range')) return;
 
-    return node.parent;
+    const { parent } = node;
+
+    if (parent.children.length === 1 && parent.children[0].type === 'canvas') {
+      // A range with a single canvas child - logical leaf node!
+      if (parent.parent?.type === 'range') {
+        return parent.parent.source as CozyRange;
+      } else {
+        return;
+      }
+    } else {
+      return parent.source as CozyRange;
+    }
   }
 
   const enumerateNodes = (type?: 'range' | 'canvas'): CozyTOCNode[] => {
@@ -106,5 +117,5 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     return type ? all.filter(n => n.type === type) : all;
   }
 
-  return { root, enumerateNodes, getBreadcrumbs, getParentRange, getNode };
+  return { root, enumerateNodes, getBreadcrumbs, getNavParent, getNode };
 }
