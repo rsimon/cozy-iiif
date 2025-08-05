@@ -126,6 +126,8 @@ export interface CozyTOC {
 
   getNode(id: string): CozyTOCNode | undefined;
 
+  getParentRange(canvasId: string): CozyRange | undefined;
+
 }
 
 export interface CozyTOCNode {

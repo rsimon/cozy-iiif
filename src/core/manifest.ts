@@ -89,10 +89,22 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     return addParent(thisNode);
   }
 
+  const getParentRange = (canvasId: string) => {
+    const node = index.get(canvasId);
+
+    // Canvas node doesn't exist
+    if (!node || node.type !== 'canvas') return;
+
+    // Canvas node doesn't have a range parent
+    if (!(node.parent?.type === 'range')) return;
+
+    return node.parent.source as CozyRange;
+  }
+
   const enumerateNodes = (type?: 'range' | 'canvas'): CozyTOCNode[] => {
     const all = Array.from(index.values());
     return type ? all.filter(n => n.type === type) : all;
   }
 
-  return { root, enumerateNodes, getBreadcrumbs, getNode };
+  return { root, enumerateNodes, getBreadcrumbs, getParentRange, getNode };
 }
