@@ -98,7 +98,7 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     // Canvas node doesn't have a range parent
     if (!(node.parent?.type === 'range')) return;
 
-    return node.parent.source as CozyRange;
+    return node.parent;
   }
 
   const enumerateNodes = (type?: 'range' | 'canvas'): CozyTOCNode[] => {
