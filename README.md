@@ -195,7 +195,7 @@ if (firstImage.type === 'level0') {
 
 Utilities for working with annotations on on Canvases.
 
-#### Get Annotations on Canvas
+**Fetch Annotations on Canvas**
 
 This helper fetches all annotations on a canvas, regardless of whether
 they are [embedded in the manifest, or referenced](https://iiif.io/api/cookbook/recipe/0269-embedded-or-referenced-annotations/) via URL (incl. through
@@ -211,7 +211,7 @@ fetchAnnotations(firstCanvas).then(annotations => {
 })
 ```
 
-#### Import Annotations to Manifest
+**Import Annotations Into Manifest**
 
 This helper programmatically imports annotations into an existing manifest
 as embedded annotations.
