@@ -1,6 +1,6 @@
 # cozy-iiif
 
-A developer-friendly API for working with IIIF resources. Built on top of the IIIF Commons [@iiif/presentation-3](https://github.com/IIIF-Commons/presentation-3-types) and [@iiif/parser](https://github.com/IIIF-Commons/parser) libraries.
+A developer-friendly TypeScript API for working with IIIF resources. Built on top of the IIIF Commons [@iiif/presentation-3](https://github.com/IIIF-Commons/presentation-3-types) and [@iiif/parser](https://github.com/IIIF-Commons/parser) libraries.
 
 ## Features
 
@@ -8,8 +8,8 @@ A developer-friendly API for working with IIIF resources. Built on top of the II
 - Developer-friendly TypeScript API for parsing and working with IIIF resources.
 - Seamless upgrade from IIIF Presentation API v2 to v3 (using `@iiif/parser` under the hood).
 - Preserves access to underlying `@iiif/presentation-3` types.
-- Helpers for stitching thumbnails and cropping regions from IIIF Level 0 tilesets.
-- Helpers for adding annotations to Canvases and Presentation manifests.
+- Utilities for stitching thumbnails and cropping regions from IIIF Level 0 tilesets and [simple image manifests](https://iiif.io/api/cookbook/recipe/0001-mvm-image/).
+- Helpers for reading and writing annotations on Canvases and Presentation manifests.
 
 ## Installation
 
@@ -143,9 +143,7 @@ console.log(image.getImageURL(800));
 console.log(image.getPixelSize());
 ```
 
-## Cozy IIIF Level 0 Utilities
-
-### Stitching and Cropping for Level 0 Tilesets
+## Level 0 Utilities
 
 Working with a Level 0 tileset, but need a thumbnail, or crop a region? The `cozy-iiif/level-0` module 
 has you covered! Cozy uses Web workers for background image processing and request throttling when 
@@ -190,9 +188,7 @@ if (firstImage.type === 'level0') {
 }
 ```
 
-## Cozy Helpers
-
-### Annotation Helpers
+## Cozy Annotation Helpers
 
 Utilities for working with annotations on on Canvases.
 
@@ -207,9 +203,8 @@ import { fetchAnnotations } from 'cozy-iiif/helpers';
 
 const firstCanvas = manifest.canvases[0];
 
-fetchAnnotations(firstCanvas).then(annotations => {
-  console.log(annotations);
-})
+const annotations = await fetchAnnotations(manifest.canvases[0]);
+console.log(annotations);
 ```
 
 **Import Annotations Into Manifest**
@@ -232,7 +227,7 @@ const annotations: Annotation[] = [{
     format: "text/plain"
   },
   target: 'https://iiif.io/api/cookbook/recipe/0021-tagging/canvas/p1#xywh=265,661,1260,1239'
-}]
+}];
 
 // Generates a new CozyManifest with annotations from an original CozyManifest.
 const updated = importAnnotations(original, annotations);
