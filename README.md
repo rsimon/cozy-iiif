@@ -143,7 +143,7 @@ console.log(image.getImageURL(800));
 console.log(image.getPixelSize());
 ```
 
-## Cozy Helpers
+## Cozy IIIF Level 0 Utilities
 
 ### Stitching and Cropping for Level 0 Tilesets
 
@@ -151,7 +151,6 @@ Working with a Level 0 tileset, but need a thumbnail, or crop a region? The `coz
 has you covered! Cozy uses Web workers for background image processing and request throttling when 
 harvesting tilesets for stitching. Stitched images are harvested at the smallest possible size, 
 to keep things fast and prevent unnecessary downloads.
-
 
 **Thumbnails**
 
@@ -190,6 +189,8 @@ if (firstImage.type === 'level0') {
   });
 }
 ```
+
+## Cozy Helpers
 
 ### Annotation Helpers
 
