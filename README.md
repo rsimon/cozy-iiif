@@ -195,6 +195,27 @@ if (firstImage.type === 'level0') {
 
 Utilities for working with annotations on on Canvases.
 
+#### Get Annotations on Canvas
+
+This helper fetches all annotations on a canvas, regardless of whether
+they are embedded in the manifest, or referenced via URL (incl. through
+Annotation Collections).
+
+```ts
+import { fetchAnnotations } from 'cozy-iiif/helpers';
+
+const firstCanvas = manifest.canvases[0];
+
+fetchAnnotations(firstCanvas).then(annotations => {
+  console.log(annotations);
+})
+```
+
+#### Import Annotations to Canvas
+
+This helper programmatically imports annotations into an existing manifest,
+returning the modified manifest.
+
 ```ts
 import type { Annotation } from '@iiif/presentation-3';
 import { importAnnotations } from 'cozy-iiif/helpers';
