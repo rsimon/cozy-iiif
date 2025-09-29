@@ -211,10 +211,10 @@ fetchAnnotations(firstCanvas).then(annotations => {
 })
 ```
 
-#### Import Annotations to Canvas
+#### Import Annotations to Manifest
 
-This helper programmatically imports annotations into an existing manifest,
-returning the modified manifest.
+This helper programmatically imports annotations into an existing manifest
+as embedded annotations.
 
 ```ts
 import type { Annotation } from '@iiif/presentation-3';
