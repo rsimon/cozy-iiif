@@ -7,7 +7,7 @@ const throttle = pThrottle({
 	interval: 1000
 });
 
-const fetchAnnotationPage = (page: AnnotationPage): Promise<Annotation[]> => {
+const fetchAnnotationPage = (page: AnnotationPage, canvasId?: string): Promise<Annotation[]> => {
   if (page.items) {
     // Embedded
     return Promise.resolve(page.items as Annotation[]);
@@ -37,13 +37,30 @@ const fetchAnnotationPage = (page: AnnotationPage): Promise<Annotation[]> => {
         console.warn('Unsupported `first` arg', page.first);
         return all;
       }
-    }), Promise.resolve([]));
+    }), Promise.resolve([]))
+      // Note that collections will list all annotations, not just those on this canvas!
+      .then(all => all.filter(a => isOnThisCanvas(a, canvasId)));
   } else {
     // Referenced
     return fetch(page.id)
       .then(res => res.json())
-      .then(data => data.items as Annotation[]);
+      .then(data => (data.items as Annotation[]).filter(a => isOnThisCanvas(a, canvasId)));
   }
+}
+
+const isOnThisCanvas = (annotation: Annotation, canvasId?: string) => {
+  if (!canvasId || !annotation.target) return true;
+
+  const targets = Array.isArray(annotation.target) ? annotation.target : [annotation.target];
+  return targets.some((target: any) => {
+    if (!('source' in target)) return true;
+    
+    if (typeof target.source === 'string') {
+      return target.source === canvasId;
+    } else {
+      return target.source.id === canvasId;
+    }
+  });
 }
 
 export const fetchAnnotations = (arg: CozyCanvas | AnnotationPage): Promise<Annotation[]> => {
@@ -51,7 +68,7 @@ export const fetchAnnotations = (arg: CozyCanvas | AnnotationPage): Promise<Anno
     return fetchAnnotationPage(arg);
   } else {
     return (arg as CozyCanvas).annotations.reduce<Promise<Annotation[]>>((promise, page) => promise.then(all => {
-      return fetchAnnotationPage(page).then(onThisPage => ([...all, ...onThisPage]));
+      return fetchAnnotationPage(page, arg.id).then(onThisPage => ([...all, ...onThisPage]));
     }), Promise.resolve([]));
   }
 }
