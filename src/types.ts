@@ -1,10 +1,10 @@
 import type {
-  Manifest, 
-  Canvas,
-  IIIFExternalWebResource, 
-  Collection, 
-  Range, 
   AnnotationPage, 
+  Canvas,
+  Collection, 
+  IIIFExternalWebResource, 
+  Manifest, 
+  Range, 
   Service
 } from '@iiif/presentation-3';
 
