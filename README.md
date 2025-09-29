@@ -198,8 +198,8 @@ Utilities for working with annotations on on Canvases.
 #### Get Annotations on Canvas
 
 This helper fetches all annotations on a canvas, regardless of whether
-they are embedded in the manifest, or referenced via URL (incl. through
-Annotation Collections).
+they are [embedded in the manifest, or referenced](https://iiif.io/api/cookbook/recipe/0269-embedded-or-referenced-annotations/) via URL (incl. through
+[Annotation Collections](https://iiif.io/api/cookbook/recipe/0309-annotation-collection/)).
 
 ```ts
 import { fetchAnnotations } from 'cozy-iiif/helpers';
