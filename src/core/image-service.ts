@@ -8,7 +8,7 @@ export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
 
   return t.startsWith('ImageService') || (
-    data.profile && data.profile.toString().includes('iiif.io/api/image/')
+    data.profile?.toString().includes('iiif.io/api/image/')
   );
 }
 
@@ -19,8 +19,10 @@ export const parseImageService = (service: Service) => {
   if (t === 'ImageService2' || context?.includes('image/2')) {
     const service2 = service as ImageService2;
 
+    const p = getPropertyValue<string>(service2, 'profile');
+
     const labels = ['level0', 'level1', 'level2'];
-    const profiles = Array.isArray(service2.profile) ? service2.profile : [service2.profile];
+    const profiles = Array.isArray(p) ? p: p ? [p] : [];
 
     const levels = profiles
       .map(profile => labels.findIndex(level => profile.toString().includes(level)))

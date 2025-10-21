@@ -28,12 +28,12 @@
     "./level-0": "./dist/level-0/index.js"
   },
   "devDependencies": {
-    "vite": "^6.3.6",
+    "vite": "^6.4.1",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@iiif/parser": "^2.2.2",
+    "@iiif/parser": "^2.2.5",
     "@iiif/presentation-3": "^2.2.3",
     "image-size": "^2.0.2",
     "p-throttle": "^8.0.0",
