@@ -44,7 +44,7 @@ const fetchAnnotationPage = (page: AnnotationPage, canvasId?: string): Promise<A
     // Referenced
     return fetch(page.id)
       .then(res => res.json())
-      .then(data => (data.items as Annotation[]).filter(a => isOnThisCanvas(a, canvasId)));
+      .then(data => ((data.items || []) as Annotation[]).filter(a => isOnThisCanvas(a, canvasId)));
   }
 }
 
