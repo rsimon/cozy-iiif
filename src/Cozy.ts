@@ -3,9 +3,13 @@ import { convertPresentation2  } from '@iiif/parser/presentation-2';
 import { Traverse } from '@iiif/parser';
 import { 
   getImages,
+  getImageURL,
   getLabel, 
   getMetadata, 
+  getPixelSizeFromServiceUrl, 
   getPropertyValue, 
+  getRegionURL, 
+  getStaticImagePixelSize, 
   getTableOfContents,
   getThumbnailURL, 
   normalizeServiceUrl, 
@@ -18,7 +22,10 @@ import type {
   CozyManifest, 
   CozyParseResult, 
   CozyRange, 
-  ImageServiceResource 
+  DynamicImageServiceResource, 
+  ImageServiceResource, 
+  Level0ImageServiceResource,
+  StaticImageResource
 } from './types';
 
 const parseURL = async (input: string): Promise<CozyParseResult> => {
@@ -247,18 +254,46 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
 }
 
 const parseImageResource = (resource: any) => {
-  const { width, height } = resource;
+  const { width, height, format } = resource;
+
+  const id = getPropertyValue(resource, 'id');
 
   const service = parseImageService(resource);
+
   if (service) {
-    return {
+    const serviceUrl = normalizeServiceUrl(getPropertyValue<string>(resource, 'id'));
+
+    const image = {
+      source: resource,
       type: service.profileLevel === 0 ? 'level0' : 'dynamic',
       service: resource,
       width,
       height,
       majorVersion: service.majorVersion,
-      serviceUrl: normalizeServiceUrl(getPropertyValue<string>(resource, 'id'))
+      serviceUrl,
+      getImageURL: getImageURL(width, height, resource),
+      getPixelSize: getPixelSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
+
+    if (service.profileLevel === 0) {
+      return image as Level0ImageServiceResource;
+    } else {
+      return {
+        ...image,
+        getRegionURL: getRegionURL(image)
+      } as DynamicImageServiceResource;
+    }
+  } else {
+    return {
+      source: resource,
+      type: 'static',
+      width,
+      height,
+      url: id,
+      format,
+      getImageURL: () => id,
+      getPixelSize: getStaticImagePixelSize(id)
+    } as StaticImageResource;
   }
 }
 

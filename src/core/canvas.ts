@@ -1,8 +1,16 @@
-import { imageSize } from 'image-size';
-import type { Canvas, IIIFExternalWebResource, Service } from '@iiif/presentation-3';
+import type { Canvas, IIIFExternalWebResource } from '@iiif/presentation-3';
 import { Traverse } from '@iiif/parser';
 import { getPropertyValue } from './resource';
-import { getImageURLFromService, getRegionURL, isImageService, parseImageService } from './image-service';
+import { 
+  getImageURL, 
+  getImageURLFromService, 
+  getPixelSizeFromServiceUrl, 
+  getRegionURL, 
+  getStaticImagePixelSize, 
+  isImageService, 
+  normalizeServiceUrl, 
+  parseImageService 
+} from './image-service';
 import type { 
   CozyImageResource, 
   DynamicImageServiceResource, 
@@ -41,48 +49,6 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
       return image.url;
     }    
   }
-}
-
-export const normalizeServiceUrl = (url: string) =>
-  url.endsWith('/info.json') ? url : `${url.endsWith('/') ? url : `${url}/`}info.json`;
-
-const getImageURL = (
-  width: number | undefined, 
-  height: number | undefined, 
-  service: Service  
-) => (minSize = 800) => {
-  if (!width || !height) return;
-
-  const aspect = width / height;
-  const isPortrait = aspect < 1;
-  
-  const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
-  const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
-
-  return getImageURLFromService(service!, w, h);
-}
-
-const getPixelSizeFromServiceUrl = (serviceUrl: string) => () =>
-  fetch(serviceUrl).then(res => res.json()).then(data => {
-    const width: number = data.width;
-    const height: number = data.height;
-    return (width !== undefined && height !== undefined) ? { width, height } : undefined;
-  });
-
-const getStaticImagePixelSize = (url: string) => () => {
-  const isBrowser = typeof window !== 'undefined';
-
-  return fetch(url).then(res => res.blob()).then(blob => {
-    if (isBrowser) {
-      return createImageBitmap(blob).then(bitmap => {
-        const { width, height } = bitmap;
-        bitmap.close(); 
-        return { width, height }
-      });
-    } else {      return blob.arrayBuffer().then(buffer => 
-        imageSize(new Uint8Array(buffer)));
-    }
-  });
 }
 
 const toCozyImageResource = (resource: IIIFExternalWebResource) => {

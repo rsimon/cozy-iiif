@@ -1,8 +1,12 @@
+import { imageSize } from 'image-size';
 import type { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
 import { getPropertyValue } from './resource';
 import type { Bounds, CozyImageResource, GetRegionURLOpts } from '../types';
 
 type ImageService = ImageService2 | ImageService3;
+
+export const normalizeServiceUrl = (url: string) =>
+  url.endsWith('/info.json') ? url : `${url.endsWith('/') ? url : `${url}/`}info.json`;
 
 export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
@@ -35,6 +39,22 @@ export const parseImageService = (service: Service) => {
     const service3 = service as ImageService3;
     return { majorVersion: 3, profileLevel: parseInt(service3.profile)}
   }
+}
+
+export const getStaticImagePixelSize = (url: string) => () => {
+  const isBrowser = typeof window !== 'undefined';
+
+  return fetch(url).then(res => res.blob()).then(blob => {
+    if (isBrowser) {
+      return createImageBitmap(blob).then(bitmap => {
+        const { width, height } = bitmap;
+        bitmap.close(); 
+        return { width, height }
+      });
+    } else {      return blob.arrayBuffer().then(buffer => 
+        imageSize(new Uint8Array(buffer)));
+    }
+  });
 }
 
 export const getImageURLFromService = (
@@ -121,3 +141,26 @@ export const getRegionURL = (
     console.error('Level 0 or static image canvas: unsupported');
   }
 }
+
+export const getImageURL = (
+  width: number | undefined, 
+  height: number | undefined, 
+  service: Service  
+) => (minSize = 800) => {
+  if (!width || !height) return;
+
+  const aspect = width / height;
+  const isPortrait = aspect < 1;
+  
+  const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
+  const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
+
+  return getImageURLFromService(service!, w, h);
+}
+
+export const getPixelSizeFromServiceUrl = (serviceUrl: string) => () =>
+  fetch(serviceUrl).then(res => res.json()).then(data => {
+    const width: number = data.width;
+    const height: number = data.height;
+    return (width !== undefined && height !== undefined) ? { width, height } : undefined;
+  });
