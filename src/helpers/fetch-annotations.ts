@@ -13,7 +13,7 @@ const fetchAnnotationPage = (page: AnnotationPage, canvasId?: string): Promise<A
     return Promise.resolve(page.items as Annotation[]);
   } else if (page.partOf) {
     // Annotation collection
-    const fetchRecursive = throttle((url: string, annotations: Annotation[] = []): Promise<Annotation[]> =>
+    const fetchRecursive = throttle((url: string, annotations: Annotation[] = []): Promise<Annotation[]> => 
       fetch(url).then(res => res.json()).then(data => {
         const all = [...annotations, ...(data.items || [])];
         if (data.next) {
@@ -44,7 +44,12 @@ const fetchAnnotationPage = (page: AnnotationPage, canvasId?: string): Promise<A
     // Referenced
     return fetch(page.id)
       .then(res => res.json())
-      .then(data => ((data.items || []) as Annotation[]).filter(a => isOnThisCanvas(a, canvasId)));
+      .then(data => ((data.items || []) as Annotation[]).filter(a => isOnThisCanvas(a, canvasId)))
+      .catch(error => {
+        console.error(error);
+        console.warn(`Could not resolve referenced annotation page: ${page.id}`)
+        return [];
+      });
   }
 }
 

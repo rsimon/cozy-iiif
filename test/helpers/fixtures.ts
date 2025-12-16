@@ -1,3 +1,6 @@
+export const HAS_BROKEN_ANNOTATION_LIST =
+  'https://digitalarchive.npm.gov.tw/Integrate/GetJson?cid=40&dept=P';
+
 // Modified from https://iiif.io/api/cookbook/recipe/0021-tagging/
 export const ANNOTATIONS = [{
   id: 'https://iiif.io/api/cookbook/recipe/0021-tagging/annotation/p0001',
