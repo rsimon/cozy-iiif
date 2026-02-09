@@ -89,7 +89,9 @@ const parseURL = async (input: string): Promise<CozyParseResult> => {
 const parse = (json: any, url?: string): CozyParseResult => {
   const context: string = Array.isArray(json['@context'])
     ? json['@context'].find(str => 
-        str.includes('iiif.io/api/presentation') || str.includes('iiif.io/api/image'))
+        str.includes('iiif.io/api/presentation') || 
+        str.includes('iiif.io/api/image') ||
+        str.includes('shared-canvas'))
     : json['@context'];
 
   if (!context) {
@@ -110,8 +112,12 @@ const parse = (json: any, url?: string): CozyParseResult => {
     }
   }
 
-  if (context.includes('presentation/2') || context.includes('presentation/3')) {
-    const majorVersion = context.includes('presentation/2') ? 2 : 3;
+  if (
+    context.includes('presentation/2') || 
+    context.includes('presentation/3') ||
+    context.includes('shared-canvas')
+  ) {
+    const majorVersion = context.includes('presentation/3') ? 3 : 2;
 
     const type = getPropertyValue(json, 'type');
 

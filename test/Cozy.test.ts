@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { Cozy, CozyImageResource, CozyManifest, DynamicImageServiceResource } from '../src';
+import { Cozy, DynamicImageServiceResource } from '../src';
 
-import { COLLECTION, WITH_STRUCTURES, INFO_JSON_V3 } from './fixtures';
+import { 
+  COLLECTION, 
+  INFO_JSON_V3,
+  WITH_STRUCTURES,
+  SHARED_CANVAS
+} from './fixtures';
 
 describe('Cozy', () => {
 
@@ -22,6 +27,11 @@ describe('Cozy', () => {
     // expect(tableOfContents.root.length).toBe(1);
     // expect(tableOfContents.root[0].children.length).toBe(14);
   });
+
+  it('should allow (deprecated) shared-canvas manifests', async () => {
+    const result = await Cozy.parseURL(SHARED_CANVAS);
+    expect(result.type).toBe('manifest');
+  }),
 
   it('should parse the v3 info.json correctly', async () => {
     const result = await Cozy.parseURL(INFO_JSON_V3);
