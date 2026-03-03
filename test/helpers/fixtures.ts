@@ -136,3 +136,9 @@ export const TWO_CANVASES_NO_ANNOTATIONS = {
     }
   ]
 }
+
+// With Media Fragment in target URL
+// {
+//   "target": "https://cogapplabs.github.io/StoriiiesViewer/demo/grande-jatte/canvases/1#xywh=346,597,8800,4812"
+// }
+export const HAS_FRAGEMENT_TARGET = 'https://raw.githubusercontent.com/cogappLabs/storiiiesViewer/main/docs/demo/grande-jatte.json';
