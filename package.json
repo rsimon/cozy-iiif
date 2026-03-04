@@ -1,6 +1,6 @@
 {
   "name": "cozy-iiif",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "description": "A developer-friendly collection of abstractions and utilities built on top of @iiif/presentation-3 and @iiif/parser",
   "license": "MIT",
   "author": "Rainer Simon",
@@ -19,7 +19,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc --emitDeclarationOnly",
     "test": "vitest"
   },
   "exports": {
@@ -28,9 +28,9 @@
     "./level-0": "./dist/level-0/index.js"
   },
   "devDependencies": {
-    "vite": "^6.4.1",
-    "vite-plugin-dts": "^4.5.4",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@iiif/parser": "^2.2.9",
