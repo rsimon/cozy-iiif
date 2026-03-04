@@ -90,6 +90,7 @@ export const getImageURLFromService = (
 export const getRegionURLFromService = (
   service: Service,
   bounds: Bounds,
+  rotation = 0, // 0, 90, 180, 270
   opts: GetRegionURLOpts = { minSize: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
@@ -106,7 +107,8 @@ export const getRegionURLFromService = (
   const { x, y, w , h } = bounds;
   const { minSize = 400, maxSize } = opts;
 
-  const aspect = w / h;
+  const isTransposed = rotation % 180 !== 0;
+  const aspect = isTransposed ? h / w : w / h;
   const isPortrait = aspect < 1;
   
   let height = Math.ceil(isPortrait ? minSize / aspect : minSize);
@@ -126,17 +128,18 @@ export const getRegionURLFromService = (
   }
 
   const regionParam = `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
-  return `${id}/${regionParam}/!${width},${height}/0/default.jpg`;
+  return `${id}/${regionParam}/!${width},${height}/${rotation}/default.jpg`;
 }
 
 export const getRegionURL = (
   image: CozyImageResource
 ) => (
   bounds: Bounds,
+  rotation = 0,
   opts: GetRegionURLOpts = { minSize: 400 }
 ): string | undefined => {
   if (image.type === 'dynamic') {
-    return getRegionURLFromService(image.service, bounds, opts);
+    return getRegionURLFromService(image.service, bounds, rotation, opts);
   } else {
     console.error('Level 0 or static image canvas: unsupported');
   }
