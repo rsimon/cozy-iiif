@@ -194,7 +194,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly majorVersion: number;
 
-  getRegionURL(bounds: Bounds, opts?: GetRegionURLOpts): string;
+  getRegionURL(bounds: Bounds, rotation?: number, opts?: GetRegionURLOpts): string;
 
 }
 
