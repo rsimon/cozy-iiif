@@ -107,8 +107,7 @@ export const getRegionURLFromService = (
   const { x, y, w , h } = bounds;
   const { minSize = 400, maxSize } = opts;
 
-  const isTransposed = rotation % 180 !== 0;
-  const aspect = isTransposed ? h / w : w / h;
+  const aspect = w / h;
   const isPortrait = aspect < 1;
   
   let height = Math.ceil(isPortrait ? minSize / aspect : minSize);
@@ -127,8 +126,10 @@ export const getRegionURLFromService = (
     }
   }
 
+  const normalizedRotation = ((rotation % 360) + 360) % 360;
+
   const regionParam = `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
-  return `${id}/${regionParam}/!${width},${height}/${rotation}/default.jpg`;
+  return `${id}/${regionParam}/!${width},${height}/${normalizedRotation}/default.jpg`;
 }
 
 export const getRegionURL = (
