@@ -107,24 +107,15 @@ export const getRegionURLFromService = (
   const { x, y, w , h } = bounds;
   const { minSize = 400, maxSize } = opts;
 
-  const aspect = w / h;
-  const isPortrait = aspect < 1;
-  
-  let height = Math.ceil(isPortrait ? minSize / aspect : minSize);
-  let width = Math.ceil(isPortrait ? minSize : minSize / aspect);
+  // Find minimum scale required to keep shortest edge >= minSize
+  const minRequiredScale = minSize / Math.min(w, h);
 
-  // Apply maxSize constraint if specified
-  if (maxSize) {
-    if (width > maxSize || height > maxSize) {
-      if (isPortrait) {
-        height = Math.min(height, maxSize);
-        width = Math.ceil(height * aspect);
-      } else {
-        width = Math.min(width, maxSize);
-        height = Math.ceil(width / aspect);
-      }
-    }
-  }
+  const scale = maxSize 
+    ? Math.max(minRequiredScale, maxSize / Math.max(w, h))
+    : minRequiredScale;
+
+  const width = Math.round(w * scale);
+  const height = Math.round(h * scale);
 
   const normalizedRotation = ((rotation % 360) + 360) % 360;
 
