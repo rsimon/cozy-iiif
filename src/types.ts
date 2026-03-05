@@ -98,7 +98,7 @@ export interface CozyCanvas {
 
   readonly annotations: AnnotationPage[];
 
-  getImageURL(minSize?: number): string;
+  getImageURL(minSize?: number, rotation?: number): string;
 
   getLabel(locale?: string): string;
 
@@ -170,7 +170,7 @@ interface BaseImageResource {
 
   readonly height: number;
 
-  getImageURL(minSize?: number): string;
+  getImageURL(minSize?: number, rotation?: number): string;
 
   getPixelSize(): Promise<{ width: number, height: number }>;
 

@@ -60,7 +60,8 @@ export const getStaticImagePixelSize = (url: string) => () => {
 export const getImageURLFromService = (
   service: Service,
   width: number,
-  height: number
+  height: number,
+  rotation: number = 0
 ): string => {
   const id = getPropertyValue(service, 'id');
 
@@ -84,7 +85,7 @@ export const getImageURLFromService = (
     return `${id}/full/full/0/default.jpg`;
   }
 
-  return `${id}/full/!${width},${height}/0/default.jpg`;
+  return `${id}/full/!${width},${height}/${rotation}/default.jpg`;
 }
 
 export const getRegionURLFromService = (
@@ -141,7 +142,7 @@ export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
   service: Service  
-) => (minSize = 800) => {
+) => (minSize = 800, rotation = 0) => {
   if (!width || !height) return;
 
   const aspect = width / height;
@@ -150,7 +151,7 @@ export const getImageURL = (
   const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
   const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
 
-  return getImageURLFromService(service!, w, h);
+  return getImageURLFromService(service!, w, h, rotation);
 }
 
 export const getPixelSizeFromServiceUrl = (serviceUrl: string) => () =>
