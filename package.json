@@ -1,6 +1,6 @@
 {
   "name": "cozy-iiif",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "A developer-friendly collection of abstractions and utilities built on top of @iiif/presentation-3 and @iiif/parser",
   "license": "MIT",
   "author": "Rainer Simon",
@@ -29,11 +29,11 @@
   },
   "devDependencies": {
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vitest": "^4.0.18"
+    "vite": "^7.3.2",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
-    "@iiif/parser": "^2.2.9",
+    "@iiif/parser": "^2.2.10",
     "@iiif/presentation-3": "^2.2.3",
     "image-size": "^2.0.2",
     "p-throttle": "^8.1.0",
