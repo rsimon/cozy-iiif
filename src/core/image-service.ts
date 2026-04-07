@@ -11,7 +11,7 @@ export const normalizeServiceUrl = (url: string) =>
 export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
 
-  return t.startsWith('ImageService') || (
+  return t?.startsWith('ImageService') || (
     data.profile?.toString().includes('iiif.io/api/image/')
   );
 }
