@@ -6,10 +6,10 @@ import {
   getThumbnailURL 
 } from '../core';
 
-export const hydrateCanvas = (canvas: CozyCanvas) => {
+export const hydrateCanvas = (canvas: CozyCanvas): CozyCanvas => {
   const { source } = canvas;
-  const images = getImages(source);
 
+  const images = getImages(source);
   return {
     source,
     id: source.id,
