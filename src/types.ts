@@ -170,6 +170,8 @@ interface BaseImageResource {
 
   readonly height: number;
 
+  readonly target?: Bounds;
+
   getImageURL(minSize?: number, rotation?: number): string;
 
   getPixelSize(): Promise<{ width: number, height: number }>;

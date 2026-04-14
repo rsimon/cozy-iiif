@@ -12,6 +12,7 @@ import {
   parseImageService 
 } from './image-service';
 import type { 
+  Bounds,
   CozyImageResource, 
   DynamicImageServiceResource, 
   ImageServiceResource, 
@@ -51,7 +52,7 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
   }
 }
 
-const toCozyImageResource = (resource: IIIFExternalWebResource) => {
+const toCozyImageResource = (resource: IIIFExternalWebResource, target?: Bounds) => {
   const { format, height, width } = resource;
 
   const id = getPropertyValue(resource, 'id');
@@ -71,6 +72,7 @@ const toCozyImageResource = (resource: IIIFExternalWebResource) => {
       height,
       majorVersion: service.majorVersion,
       serviceUrl,
+      target,
       getImageURL: getImageURL(width, height, imageService),
       getPixelSize: getPixelSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
@@ -97,6 +99,33 @@ const toCozyImageResource = (resource: IIIFExternalWebResource) => {
   }
 } 
 
+const toCanvasTarget = (target: any): Bounds | undefined => {
+  const parseBounds = (xywh: string): Bounds | undefined => {
+    const coords = xywh.replace('xywh=', '').split(',').map(Number);
+    if (coords.length === 4 && coords.every(n => !isNaN(n))) {
+      const [x, y, w, h] = coords;
+      return { x, y, w, h };
+    }
+  }
+
+  // SpecificResource object with FragmentSelector
+  if (target && typeof target === 'object') {
+    const selector = Array.isArray(target.selector) 
+      ? target.selector.find((s: any) => s.type === 'FragmentSelector')
+      : target.selector?.type === 'FragmentSelector' ? target.selector : null;
+
+    if (selector?.value)
+      return parseBounds(selector.value);
+  }
+
+  // Plain string, with or without #xywh fragment
+  if (typeof target === 'string') {
+    const hash = target.split('#')[1];
+    if (hash?.startsWith('xywh='))
+      return parseBounds(hash);
+  }
+}
+
 export const getImages = (canvas: Canvas): CozyImageResource[] => {
   const images: CozyImageResource[] = [];
 
@@ -107,8 +136,10 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
           Array.isArray(anno.body) ? anno.body : [anno.body] 
           : [];
 
-        const imageResources = bodies.filter(b => (b as IIIFExternalWebResource).type === 'Image');
-        images.push(...imageResources.map(body => toCozyImageResource(body as IIIFExternalWebResource)));
+        const target = toCanvasTarget(anno.target);
+
+        const imageBodies = bodies.filter(b => (b as IIIFExternalWebResource).type === 'Image');
+        images.push(...imageBodies.map(body => toCozyImageResource(body as IIIFExternalWebResource, target)));
       }
     }]
   });
