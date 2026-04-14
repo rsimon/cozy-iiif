@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { Cozy, DynamicImageServiceResource } from '../src';
+import { Cozy, CozyManifest, DynamicImageServiceResource } from '../src';
 
 import { 
   COLLECTION, 
   INFO_JSON_V3,
+  WITH_MULTI_IMAGE,
   WITH_STRUCTURES,
-  SHARED_CANVAS
+  SHARED_CANVAS,
 } from './fixtures';
 
 describe('Cozy', () => {
@@ -51,6 +52,26 @@ describe('Cozy', () => {
     const imageURL = resource.getImageURL(800);
     expect(imageURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
+  });
+
+  it('should parse a multi-image canvas correctly', () => {
+    const result = Cozy.parse(WITH_MULTI_IMAGE);
+    expect(result.type).toBe('manifest');
+
+    const manifest = (result as any).resource as CozyManifest;
+    expect(manifest.canvases.length).toBe(1);
+
+    const canvas = manifest.canvases[0];
+    expect (canvas.images.length).toBe(2);
+
+    const [fullSizeImage, positionedImage] = canvas.images;
+    expect(fullSizeImage.target).toBeUndefined();
+
+    expect(positionedImage.target).toBeDefined();
+    expect(positionedImage.target?.x).toBe(1307);
+    expect(positionedImage.target?.y).toBe(2609);
+    expect(positionedImage.target?.w).toBe(1967);
+    expect(positionedImage.target?.h).toBe(2929);
   });
 
 });
