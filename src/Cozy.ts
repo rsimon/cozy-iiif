@@ -158,6 +158,9 @@ const parseCollectionResource = (resource: any, majorVersion: number): CozyColle
     const items: any[] = [];
 
     const modelBuilder = new Traverse({
+      // The model builder fires on the collection ITSELF - we don't want that, but want
+      // to collect sub-collections
+      collection: [item => item.id !== getPropertyValue(resource, 'id') && items.push(item)],
       manifest: [item => items.push(item)]
     });
 
@@ -176,6 +179,7 @@ const parseCollectionResource = (resource: any, majorVersion: number): CozyColle
   const items = parseV3(v3);
 
   return {
+    type: 'Collection',
     source: v3,
     id: v3.id,
     majorVersion,

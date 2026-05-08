@@ -28,6 +28,8 @@ export interface CozyCollection {
 
   readonly id: string;
 
+  readonly type: 'Collection';
+
   readonly items: CozyCollectionItem[];
 
   getLabel(locale?: string): string | undefined;
@@ -36,17 +38,19 @@ export interface CozyCollection {
 
 }
 
-export interface CozyCollectionItem {
+export interface CozyCollectionManifestItem {
 
   readonly id: string;
 
-  readonly type: string;
+  readonly type: 'Manifest';
 
   readonly source: any;
 
   getLabel(locale?: string): string | undefined;
 
 }
+
+export type CozyCollectionItem = CozyCollectionManifestItem | CozyCollection;
 
 export interface CozyManifest {
 

@@ -1,6 +1,9 @@
 export const COLLECTION =
   'https://www.davidrumsey.com/luna/servlet/iiif/collection/s/1k986a';
 
+export const NESTED_COLLECTION =
+  'https://image-ub.bgo1.test.rail.uib.no/iiif/presentation/na/fragmenter/collection.json';
+
 export const WITH_STRUCTURES =
   'https://lib.is/IE19255085/manifest';
 

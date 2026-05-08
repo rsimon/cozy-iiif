@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { Cozy, CozyManifest, DynamicImageServiceResource } from '../src';
+import { Cozy, CozyCollection, CozyManifest, DynamicImageServiceResource } from '../src';
 
 import { 
   COLLECTION, 
+  NESTED_COLLECTION,
   INFO_JSON_V3,
   WITH_MULTI_IMAGE,
   WITH_STRUCTURES,
@@ -14,6 +15,18 @@ describe('Cozy', () => {
   it('should parse collection manifests correctly', async () => {
     const result = await Cozy.parseURL(COLLECTION);
     expect(result.type).toBe('collection');
+
+    const collection = (result as any).resource as CozyCollection;
+    expect(collection.items.length).toBe(16);
+  });
+
+  it('should parse nested collection manifests correctly', async () => {
+    const result = await Cozy.parseURL(NESTED_COLLECTION);
+    expect(result.type).toBe('collection');
+
+    const collection = (result as any).resource as CozyCollection;
+    expect(collection.items.length).toBe(7);
+    expect(collection.items.every(item => item.type === 'Collection'))
   });
   
   it('should parse structures in presentation manifests', async () => {
