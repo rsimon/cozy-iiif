@@ -87,6 +87,12 @@ const parseURL = async (input: string): Promise<CozyParseResult> => {
 }
 
 const parse = (json: any, url?: string): CozyParseResult => {
+  if (json.type === 'Canvas')
+    return {
+      type: 'canvas',
+      resource: parseCanvas(json)
+    };
+
   const context: string = Array.isArray(json['@context'])
     ? json['@context'].find(str => 
         str.includes('iiif.io/api/presentation') || 
@@ -189,6 +195,22 @@ const parseCollectionResource = (resource: any, majorVersion: number): CozyColle
   };
 }
 
+const parseCanvas = (canvas: Canvas) => {
+  const images = getImages(canvas);
+  return {
+    source: canvas,
+    id: canvas.id,
+    width: canvas.width,
+    height: canvas.height,
+    images,
+    annotations: (canvas.annotations || []),
+    getImageURL: images.length > 0 ? images[0].getImageURL : () => undefined,
+    getLabel: getLabel(canvas),
+    getMetadata: getMetadata(canvas),
+    getThumbnailURL: getThumbnailURL(canvas, images)
+  } as CozyCanvas;
+}
+
 const parseManifestResource = (resource: any, majorVersion: number): CozyManifest => {
 
   const parseV3 = (manifest: Manifest) => {
@@ -202,21 +224,7 @@ const parseManifestResource = (resource: any, majorVersion: number): CozyManifes
   
     modelBuilder.traverseManifest(manifest);
     
-    const canvases = sourceCanvases.map((c: Canvas) => {
-      const images = getImages(c);
-      return {
-        source: c,
-        id: c.id,
-        width: c.width,
-        height: c.height,
-        images,
-        annotations: (c.annotations || []),
-        getImageURL: images.length > 0 ? images[0].getImageURL : () => undefined,
-        getLabel: getLabel(c),
-        getMetadata: getMetadata(c),
-        getThumbnailURL: getThumbnailURL(c, images)
-      } as CozyCanvas;
-    });
+    const canvases = sourceCanvases.map(parseCanvas);
 
     const toRange = (source: Range): CozyRange => {
       const items = source.items || [];

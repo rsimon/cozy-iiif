@@ -12,6 +12,7 @@ export type CozyParseResult =
   | { type: 'collection', url: string, resource: CozyCollection }
   | { type: 'manifest'; url: string, resource: CozyManifest }
   | { type: 'iiif-image'; url: string, resource: CozyImageResource }
+  | { type: 'canvas', resource: CozyCanvas }
   | { type: 'plain-image'; url: string }
   | { type: 'webpage'; url: string }
   | { 
