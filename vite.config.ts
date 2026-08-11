@@ -9,9 +9,6 @@ export default defineConfig({
         'level-0/index': './src/level-0/index.ts',
       },
       formats: ['es']
-    },
-    rollupOptions: {
-      external: ['probe-image-size']
     }
   }
 });

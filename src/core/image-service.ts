@@ -1,4 +1,3 @@
-import probe from 'probe-image-size';
 import type { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
 import { getPropertyValue } from './resource';
 import type { Bounds, CozyImageResource, GetRegionURLOpts } from '../types';
@@ -52,9 +51,7 @@ export const getStaticImagePixelSize = (url: string) => () => {
         return { width, height }
       });
     } else {
-      return blob.arrayBuffer().then(buffer => {
-        return probe.sync(Buffer.from(buffer));
-      });
+      throw new Error('Not implemented');
     }
   });
 }
