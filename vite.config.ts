@@ -11,7 +11,7 @@ export default defineConfig({
       formats: ['es']
     },
     rollupOptions: {
-      external: ['image-size']
+      external: ['probe-image-size']
     }
   }
 });
