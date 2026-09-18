@@ -1,4 +1,4 @@
-import type { Canvas, IIIFExternalWebResource } from '@iiif/presentation-3';
+import type { Canvas, IIIFExternalWebResource, ImageApiSelector, Selector, SpecificResource } from '@iiif/presentation-3';
 import { Traverse } from '@iiif/parser';
 import { getPropertyValue } from './resource';
 import { 
@@ -19,6 +19,7 @@ import type {
   Level0ImageServiceResource, 
   StaticImageResource 
 } from '../types';
+import { parseFragmentSelector } from './selector';
 
 export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []) => (minSize = 400) => {
   const { width, height } = canvas;
@@ -52,12 +53,40 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
   }
 }
 
-const toCozyImageResource = (resource: IIIFExternalWebResource, target?: Bounds) => {
-  const { format, height, width } = resource;
+const parseRegion = (selector?: Selector | Selector[]): Bounds | undefined => {
+  if (!selector) return;
+  
+  if (Array.isArray(selector)) {
+    console.warn('Unsupported selector (array)');
+    return;
+  }
+
+  // For now, ImageApiSelector and FragmentSelector are the only supported selector types
+  if (typeof selector !== 'object') {
+    console.warn('Unsuppoted selector', selector);
+    return;
+  }
+
+  if (selector.type === 'ImageApiSelector' && selector.region) {
+    const [x, y, w, h] = selector.region.split(',').map(str => parseFloat(str.trim()));
+    return { x, y, w, h };
+  } else if (selector.type === 'FragmentSelector') {
+    return parseFragmentSelector(selector.value);
+  }
+
+  return;
+}
+
+const toCozyImageResource = (resource: IIIFExternalWebResource | SpecificResource, target?: Bounds) => {
+  const image = resource.type === 'SpecificResource' ? resource.source : resource;
+  
+  const selector = resource.type === 'SpecificResource' ? parseRegion(resource.selector) : undefined;
+
+  const { format, height, width } = image;
 
   const id = getPropertyValue(resource, 'id');
 
-  const imageService = (resource.service || []).find(isImageService);
+  const imageService = (image.service || []).find(isImageService);
 
   const service = imageService ? parseImageService(imageService) : undefined; 
 
@@ -73,6 +102,7 @@ const toCozyImageResource = (resource: IIIFExternalWebResource, target?: Bounds)
       majorVersion: service.majorVersion,
       serviceUrl,
       target,
+      selector,
       getImageURL: getImageURL(width, height, imageService),
       getPixelSize: getPixelSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
@@ -93,6 +123,7 @@ const toCozyImageResource = (resource: IIIFExternalWebResource, target?: Bounds)
       height,
       url: id,
       format,
+      selector,
       getImageURL: () => id,
       getPixelSize: getStaticImagePixelSize(id)
     } as StaticImageResource;
@@ -138,8 +169,12 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
 
         const target = toCanvasTarget(anno.target);
 
-        const imageBodies = bodies.filter(b => (b as IIIFExternalWebResource).type === 'Image');
+        const imageBodies = bodies.filter(b => 
+          (b as IIIFExternalWebResource).type === 'Image' || 
+          (b as SpecificResource).type === 'SpecificResource' && (b as SpecificResource).source?.type === 'Image');
+        
         images.push(...imageBodies.map(body => toCozyImageResource(body as IIIFExternalWebResource, target)));
+
       }
     }]
   });

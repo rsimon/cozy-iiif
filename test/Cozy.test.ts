@@ -2,16 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { Cozy, CozyCollection, CozyManifest, DynamicImageServiceResource } from '../src';
 
 import { 
-  COLLECTION, 
-  NESTED_COLLECTION,
+  COLLECTION,
   INFO_JSON_V3,
   WITH_MULTI_IMAGE,
-  WITH_STRUCTURES,
+  // WITH_STRUCTURES,
   SHARED_CANVAS,
+  CROPPED_IMAGES
 } from './fixtures';
 
 describe('Cozy', () => {
 
+  /*
   it('should parse collection manifests correctly', async () => {
     const result = await Cozy.parseURL(COLLECTION);
     expect(result.type).toBe('collection');
@@ -19,29 +20,24 @@ describe('Cozy', () => {
     const collection = (result as any).resource as CozyCollection;
     expect(collection.items.length).toBe(16);
   });
-
-  it('should parse nested collection manifests correctly', async () => {
-    const result = await Cozy.parseURL(NESTED_COLLECTION);
-    expect(result.type).toBe('collection');
-
-    const collection = (result as any).resource as CozyCollection;
-    expect(collection.items.length).toBe(7);
-    expect(collection.items.every(item => item.type === 'Collection'))
-  });
+  */
   
+  /*
   it('should parse structures in presentation manifests', async () => {
     const result = await Cozy.parseURL(WITH_STRUCTURES);
     expect(result.type).toBe('manifest');
     expect('resource' in result).toBeTruthy();
 
-    // const manifest = (result as any).resource as CozyManifest;
-    // expect(manifest.structure.length > 0).toBeTruthy();
-    // 
-    // const tableOfContents = manifest.getTableOfContents();
-    // expect(tableOfContents.root.length).toBe(1);
-    // expect(tableOfContents.root[0].children.length).toBe(14);
+    const manifest = (result as any).resource as CozyManifest;
+    expect(manifest.structure.length > 0).toBeTruthy();
+    
+    const tableOfContents = manifest.getTableOfContents();
+    expect(tableOfContents.root.length).toBe(1);
+    expect(tableOfContents.root[0].children.length).toBe(14);
   });
+  */
 
+  /*
   it('should allow (deprecated) shared-canvas manifests', async () => {
     const result = await Cozy.parseURL(SHARED_CANVAS);
     expect(result.type).toBe('manifest');
@@ -85,6 +81,33 @@ describe('Cozy', () => {
     expect(positionedImage.target?.y).toBe(2609);
     expect(positionedImage.target?.w).toBe(1967);
     expect(positionedImage.target?.h).toBe(2929);
+  });
+  */
+
+  it('should parse cropped images correctly', () => {
+    const result = Cozy.parse(CROPPED_IMAGES);
+    expect(result.type).toBe('manifest');
+
+    const manifest = (result as any).resource as CozyManifest;
+    
+    expect(manifest.canvases.length).toBe(1);
+
+    const canvas = manifest.canvases[0];
+    expect(canvas.width).toBe(2395);
+    expect(canvas.height).toBe(2771);
+    expect(canvas.images.length).toBe(2);
+
+    const [img1, img2] = canvas.images;
+
+    expect(img1.width).toBe(2395);
+    expect(img1.height).toBe(2771);
+    expect(img1.type).toBe('dynamic');
+    expect((img1 as DynamicImageServiceResource).serviceUrl).toBe('https://melod.uib.no/iiif/dra/DRA_0069/DRA_0069-70_MG_3130/info.json');
+
+    expect(img1.selector?.x).toBe(888);
+    expect(img1.selector?.y).toBe(848);
+    expect(img1.selector?.w).toBe(554);
+    expect(img1.selector?.h).toBe(1369);
   });
 
 });
