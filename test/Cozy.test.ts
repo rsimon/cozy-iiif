@@ -12,7 +12,6 @@ import {
 
 describe('Cozy', () => {
 
-  /*
   it('should parse collection manifests correctly', async () => {
     const result = await Cozy.parseURL(COLLECTION);
     expect(result.type).toBe('collection');
@@ -20,7 +19,6 @@ describe('Cozy', () => {
     const collection = (result as any).resource as CozyCollection;
     expect(collection.items.length).toBe(16);
   });
-  */
   
   /*
   it('should parse structures in presentation manifests', async () => {
@@ -37,7 +35,6 @@ describe('Cozy', () => {
   });
   */
 
-  /*
   it('should allow (deprecated) shared-canvas manifests', async () => {
     const result = await Cozy.parseURL(SHARED_CANVAS);
     expect(result.type).toBe('manifest');
@@ -82,7 +79,6 @@ describe('Cozy', () => {
     expect(positionedImage.target?.w).toBe(1967);
     expect(positionedImage.target?.h).toBe(2929);
   });
-  */
 
   it('should parse cropped images correctly', () => {
     const result = Cozy.parse(CROPPED_IMAGES);
@@ -99,15 +95,37 @@ describe('Cozy', () => {
 
     const [img1, img2] = canvas.images;
 
+    // img1
     expect(img1.width).toBe(2395);
     expect(img1.height).toBe(2771);
     expect(img1.type).toBe('dynamic');
     expect((img1 as DynamicImageServiceResource).serviceUrl).toBe('https://melod.uib.no/iiif/dra/DRA_0069/DRA_0069-70_MG_3130/info.json');
 
+    expect(img1.target?.x).toBe(1376);
+    expect(img1.target?.y).toBe(500);
+    expect(img1.target?.w).toBe(638);
+    expect(img1.target?.h).toBe(1577);
+
     expect(img1.selector?.x).toBe(888);
     expect(img1.selector?.y).toBe(848);
     expect(img1.selector?.w).toBe(554);
     expect(img1.selector?.h).toBe(1369);
+
+    // img 2
+    expect(img2.width).toBe(2375);
+    expect(img2.height).toBe(2639);
+    expect(img2.type).toBe('dynamic');
+    expect((img2 as DynamicImageServiceResource).serviceUrl).toBe('https://melod.uib.no/iiif/dra/DRA_0069/DRA_0069-70_MG_3131/info.json');
+
+    expect(img2.target?.x).toBe(404);
+    expect(img2.target?.y).toBe(365);
+    expect(img2.target?.w).toBe(561);
+    expect(img2.target?.h).toBe(1767);
+
+    expect(img2.selector?.x).toBe(201);
+    expect(img2.selector?.y).toBe(793);
+    expect(img2.selector?.w).toBe(450);
+    expect(img2.selector?.h).toBe(1418);
   });
 
 });
