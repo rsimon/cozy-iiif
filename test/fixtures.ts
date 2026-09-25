@@ -68,6 +68,46 @@ export const WITH_MULTI_IMAGE = {
   ]
 }
 
+export const CANVAS_WITH_SPECIFIC_RESOURCE = {
+  'id': 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130',
+  type: 'Canvas',
+  label: {
+    none: [
+      'Test Canvas'
+    ]
+  },
+  width: 2395,
+  height: 2771,
+  items: [
+    {
+      id: 'https://www.example.com/canvas/01/page',
+      type: 'AnnotationPage',
+      items: [
+        {
+          type: 'SpecificResource',
+          source: {
+            id: 'https://www.example.com/full/max/0/default.jpg',
+            type: 'Image',
+            format: 'image/jpeg',
+            width: 2395,
+            height: 2771,
+            service: [
+              {
+                id: 'https://www.example.com',
+                type: 'ImageService3',
+                profile: 'level2'
+              }
+            ]
+          },
+          selector: {
+            type: 'ImageApiSelector',
+            region: '160,793,603,1492'
+          }
+        }
+      ]
+    }
+  ]
+}
 
 export const CROPPED_IMAGES = {
   '@context': 'http://iiif.io/api/presentation/3/context.json',

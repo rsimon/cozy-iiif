@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { Cozy, CozyCollection, CozyManifest, DynamicImageServiceResource } from '../src';
+import { Cozy, CozyCanvas, CozyCollection, CozyManifest, DynamicImageServiceResource } from '../src';
 
 import { 
+  CANVAS_WITH_SPECIFIC_RESOURCE,
   COLLECTION,
+  CROPPED_IMAGES,
   INFO_JSON_V3,
-  WITH_MULTI_IMAGE,
-  // WITH_STRUCTURES,
   SHARED_CANVAS,
-  CROPPED_IMAGES
+  WITH_MULTI_IMAGE
 } from './fixtures';
 
 describe('Cozy', () => {
@@ -19,21 +19,6 @@ describe('Cozy', () => {
     const collection = (result as any).resource as CozyCollection;
     expect(collection.items.length).toBe(16);
   });
-  
-  /*
-  it('should parse structures in presentation manifests', async () => {
-    const result = await Cozy.parseURL(WITH_STRUCTURES);
-    expect(result.type).toBe('manifest');
-    expect('resource' in result).toBeTruthy();
-
-    const manifest = (result as any).resource as CozyManifest;
-    expect(manifest.structure.length > 0).toBeTruthy();
-    
-    const tableOfContents = manifest.getTableOfContents();
-    expect(tableOfContents.root.length).toBe(1);
-    expect(tableOfContents.root[0].children.length).toBe(14);
-  });
-  */
 
   it('should allow (deprecated) shared-canvas manifests', async () => {
     const result = await Cozy.parseURL(SHARED_CANVAS);
@@ -58,6 +43,16 @@ describe('Cozy', () => {
     const imageURL = resource.getImageURL(800);
     expect(imageURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
+  });
+
+  it('should parse a canvas resource with a SpecificResource annotation correctly', () => {
+    const result = Cozy.parse(CANVAS_WITH_SPECIFIC_RESOURCE);
+    expect(result.type).toBe('canvas');
+
+    const canvas = (result as any).resource as CozyCanvas;
+
+    expect(canvas.images.length).toBe(1);
+    console.log('CANVAS', canvas);
   });
 
   it('should parse a multi-image canvas correctly', () => {
