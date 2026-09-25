@@ -68,7 +68,7 @@ const normalizeRotation = (rotation: Rotation) => {
 
 const toRotationParam = (rotation: Rotation): string => {
   const { degrees, mirrored } = normalizeRotation(rotation);
-  return `${mirrored ? '!' : ''}${degrees}`;
+  return mirrored ? `!${((-degrees % 360) + 360) % 360}` : `${degrees}`;
 }
 
 export const getImageURLFromService = (
