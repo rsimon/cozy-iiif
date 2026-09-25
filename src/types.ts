@@ -103,7 +103,7 @@ export interface CozyCanvas {
 
   readonly annotations: AnnotationPage[];
 
-  getImageURL(minSize?: number, rotation?: number): string;
+  getImageURL(minSize?: number, rotation?: Rotation): string;
 
   getLabel(locale?: string): string;
 
@@ -179,7 +179,7 @@ interface BaseImageResource {
 
   readonly selector?: Bounds;
 
-  getImageURL(minSize?: number, rotation?: number): string;
+  getImageURL(minSize?: number, rotation?: Rotation): string;
 
   getPixelSize(): Promise<{ width: number, height: number }>;
 
@@ -203,7 +203,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly majorVersion: number;
 
-  getRegionURL(bounds: Bounds, rotation?: number, opts?: GetRegionURLOpts): string;
+  getRegionURL(bounds: Bounds, rotation?: Rotation, opts?: GetRegionURLOpts): string;
 
 }
 
