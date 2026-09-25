@@ -253,3 +253,13 @@ export interface GetRegionURLOpts {
   maxSize?: number;
 
 }
+
+export interface RotationOptions {
+
+  degrees: number;
+
+  mirrored?: boolean;
+
+}
+
+export type Rotation = number | RotationOptions;

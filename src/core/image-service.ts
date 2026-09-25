@@ -1,6 +1,6 @@
 import type { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
 import { getPropertyValue } from './resource';
-import type { Bounds, CozyImageResource, GetRegionURLOpts } from '../types';
+import type { Bounds, CozyImageResource, GetRegionURLOpts, Rotation } from '../types';
 
 type ImageService = ImageService2 | ImageService3;
 
@@ -56,11 +56,26 @@ export const getStaticImagePixelSize = (url: string) => () => {
   });
 }
 
+const normalizeRotation = (rotation: Rotation) => {
+  const opts = typeof rotation === 'number'
+    ? { degrees: rotation } : rotation;
+
+  return {
+    degrees: ((opts.degrees % 360) + 360) % 360,
+    mirrored: opts.mirrored
+  }
+}
+
+const toRotationParam = (rotation: Rotation): string => {
+  const { degrees, mirrored } = normalizeRotation(rotation);
+  return `${mirrored ? '!' : ''}${degrees}`;
+}
+
 export const getImageURLFromService = (
   service: Service,
   width: number,
   height: number,
-  rotation: number = 0
+  rotation: Rotation = 0
 ): string => {
   const id = getPropertyValue(service, 'id');
 
@@ -70,6 +85,10 @@ export const getImageURLFromService = (
     (compliance.includes('level0') || compliance.includes('level:0'));
   
   if (isLevel0) {
+    const { degrees, mirrored } = normalizeRotation(rotation);
+    if (degrees !== 0 || mirrored)
+      console.warn(`Level 0 image - rotation and mirroring not supported`);
+
     // For level 0, find the closest pre-defined size
     if ('sizes' in service && Array.isArray(service.sizes)) {
       const suitableSize = service.sizes
@@ -84,13 +103,13 @@ export const getImageURLFromService = (
     return `${id}/full/full/0/default.jpg`;
   }
 
-  return `${id}/full/!${width},${height}/${rotation}/default.jpg`;
+  return `${id}/full/!${width},${height}/${toRotationParam(rotation)}/default.jpg`;
 }
 
 export const getRegionURLFromService = (
   service: Service,
   bounds: Bounds,
-  rotation = 0, // 0, 90, 180, 270
+  rotation: Rotation = 0,
   opts: GetRegionURLOpts = { minSize: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
@@ -117,17 +136,15 @@ export const getRegionURLFromService = (
   const width = Math.round(w * scale);
   const height = Math.round(h * scale);
 
-  const normalizedRotation = ((rotation % 360) + 360) % 360;
-
   const regionParam = `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
-  return `${id}/${regionParam}/!${width},${height}/${normalizedRotation}/default.jpg`;
+  return `${id}/${regionParam}/!${width},${height}/${toRotationParam(rotation)}/default.jpg`;
 }
 
 export const getRegionURL = (
   image: CozyImageResource
 ) => (
   bounds: Bounds,
-  rotation = 0,
+  rotation: Rotation = 0,
   opts: GetRegionURLOpts = { minSize: 400 }
 ): string | undefined => {
   if (image.type === 'dynamic') {
@@ -141,7 +158,7 @@ export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
   service: Service  
-) => (minSize = 800, rotation = 0) => {
+) => (minSize = 800, rotation: Rotation = 0) => {
   if (!width || !height) return;
 
   const aspect = width / height;
