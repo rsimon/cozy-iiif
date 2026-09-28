@@ -44,7 +44,7 @@ describe('Cozy', () => {
     expect(imageURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
   });
-
+  
   it('should parse a canvas resource with a SpecificResource annotation correctly', () => {
     const result = Cozy.parse(CANVAS_WITH_SPECIFIC_RESOURCE);
     expect(result.type).toBe('canvas');
@@ -54,7 +54,7 @@ describe('Cozy', () => {
     expect(canvas.images.length).toBe(1);
     console.log('CANVAS', canvas);
   });
-
+  
   it('should parse a multi-image canvas correctly', () => {
     const result = Cozy.parse(WITH_MULTI_IMAGE);
     expect(result.type).toBe('manifest');

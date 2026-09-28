@@ -69,7 +69,7 @@ export const WITH_MULTI_IMAGE = {
 }
 
 export const CANVAS_WITH_SPECIFIC_RESOURCE = {
-  'id': 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130',
+  id: 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130',
   type: 'Canvas',
   label: {
     none: [
@@ -83,26 +83,32 @@ export const CANVAS_WITH_SPECIFIC_RESOURCE = {
       id: 'https://www.example.com/canvas/01/page',
       type: 'AnnotationPage',
       items: [
-        {
-          type: 'SpecificResource',
-          source: {
-            id: 'https://www.example.com/full/max/0/default.jpg',
-            type: 'Image',
-            format: 'image/jpeg',
-            width: 2395,
-            height: 2771,
-            service: [
-              {
-                id: 'https://www.example.com',
-                type: 'ImageService3',
-                profile: 'level2'
-              }
-            ]
+        { 
+          id: 'https://www.example.com/canvas/01/annotation/01',
+          type: 'Annotation',
+          motviation: 'painting',
+          body: {
+            type: 'SpecificResource',
+            source: {
+              id: 'https://www.example.com/full/max/0/default.jpg',
+              type: 'Image',
+              format: 'image/jpeg',
+              width: 2395,
+              height: 2771,
+              service: [
+                {
+                  id: 'https://www.example.com',
+                  type: 'ImageService3',
+                  profile: 'level2'
+                }
+              ]
+            },
+            selector: {
+              type: 'ImageApiSelector',
+              region: '160,793,603,1492'
+            }
           },
-          selector: {
-            type: 'ImageApiSelector',
-            region: '160,793,603,1492'
-          }
+          target: 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130'
         }
       ]
     }
