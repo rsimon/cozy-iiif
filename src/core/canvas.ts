@@ -172,8 +172,6 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
         const imageBodies = bodies.filter(b => 
           (b as IIIFExternalWebResource).type === 'Image' || 
           (b as SpecificResource).type === 'SpecificResource' && (b as SpecificResource).source?.type === 'Image');
-        
-        console.log({ bodies, imageBodies });
 
         images.push(...imageBodies.map(body => toCozyImageResource(body as IIIFExternalWebResource, target)));
       }
