@@ -10,6 +10,9 @@ export const INFO_JSON_V3 =
 export const SHARED_CANVAS =
   'https://ids.si.edu/ids/manifest/FS-8106_06';
 
+export const V4_BASIC = 
+  'https://iiif.io/api/cookbook/recipe/0001-mvm-image/v4/manifest.json';
+
 export const WITH_MULTI_IMAGE = {
   '@context': 'http://iiif.io/api/presentation/2/context.json',
   '@type': 'sc:Manifest',

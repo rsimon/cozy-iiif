@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Cozy, CozyCanvas, CozyCollection, CozyManifest, DynamicImageServiceResource } from '../src';
+import { Cozy, CozyCanvas, CozyCollection, CozyManifest, DynamicImageServiceResource, StaticImageResource } from '../src';
 
 import { 
   CANVAS_WITH_SPECIFIC_RESOURCE,
@@ -7,6 +7,7 @@ import {
   CROPPED_IMAGES,
   INFO_JSON_V3,
   SHARED_CANVAS,
+  V4_BASIC,
   WITH_MULTI_IMAGE
 } from './fixtures';
 
@@ -44,15 +45,30 @@ describe('Cozy', () => {
     expect(imageURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
   });
+
+  it('should parse a v4 presentation manifest correctly', async () => {
+      const result = await Cozy.parseURL(V4_BASIC);
+      expect(result.type).toBe('manifest');
+
+      const manifest = (result as any).resource as CozyManifest;
+      expect(manifest.canvases.length).toBe(1);
+
+      const canvas = manifest.canvases[0];
+      expect(canvas.width).toBe(1200);
+      expect(canvas.height).toBe(1800);
+      expect(canvas.images.length).toBe(1);
+
+      const image = canvas.images[0];
+      expect(image.type).toBe('static');
+      expect(image.getImageURL()).toBe('https://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png');
+  });
   
   it('should parse a canvas resource with a SpecificResource annotation correctly', () => {
     const result = Cozy.parse(CANVAS_WITH_SPECIFIC_RESOURCE);
     expect(result.type).toBe('canvas');
 
     const canvas = (result as any).resource as CozyCanvas;
-
     expect(canvas.images.length).toBe(1);
-    console.log('CANVAS', canvas);
   });
   
   it('should parse a multi-image canvas correctly', () => {
