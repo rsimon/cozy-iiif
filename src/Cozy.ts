@@ -121,9 +121,12 @@ const parse = (json: any, url?: string): CozyParseResult => {
   if (
     context.includes('presentation/2') || 
     context.includes('presentation/3') ||
+    context.includes('presentation/4') ||
     context.includes('shared-canvas')
   ) {
-    const majorVersion = context.includes('presentation/3') ? 3 : 2;
+    const majorVersion = 
+      context.includes('presentation/4') ? 4 :
+      context.includes('presentation/3') ? 3 : 2;
 
     const type = getPropertyValue(json, 'type');
 
@@ -197,6 +200,7 @@ const parseCollectionResource = (resource: any, majorVersion: number): CozyColle
 
 const parseCanvas = (canvas: Canvas) => {
   const images = getImages(canvas);
+
   return {
     source: canvas,
     id: canvas.id,

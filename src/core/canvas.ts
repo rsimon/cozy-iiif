@@ -1,6 +1,7 @@
-import type { Canvas, IIIFExternalWebResource, ImageApiSelector, Selector, SpecificResource } from '@iiif/presentation-3';
-import { Traverse } from '@iiif/parser';
+import type { Canvas, IIIFExternalWebResource, Selector, SpecificResource } from '@iiif/presentation-3';
+import { Traverse, type AnyMotivation } from '@iiif/parser';
 import { getPropertyValue } from './resource';
+import { parseFragmentSelector } from './selector';
 import { 
   getImageURL, 
   getImageURLFromService, 
@@ -19,7 +20,6 @@ import type {
   Level0ImageServiceResource, 
   StaticImageResource 
 } from '../types';
-import { parseFragmentSelector } from './selector';
 
 export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []) => (minSize = 400) => {
   const { width, height } = canvas;
@@ -160,9 +160,12 @@ const toCanvasTarget = (target: any): Bounds | undefined => {
 export const getImages = (canvas: Canvas): CozyImageResource[] => {
   const images: CozyImageResource[] = [];
 
+  const isPainting = (arg?: AnyMotivation | AnyMotivation[]) => 
+    arg ? Array.isArray(arg) ? arg.includes('painting') : arg === 'painting' : true;
+
   const builder = new Traverse({
     annotation: [anno => {
-      if (anno.motivation === 'painting' || !anno.motivation) {
+      if (isPainting(anno.motivation)) {
         const bodies = anno.body ? 
           Array.isArray(anno.body) ? anno.body : [anno.body] 
           : [];
