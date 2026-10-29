@@ -1,4 +1,87 @@
-import type { CozyCanvas, CozyRange, CozyTOC, CozyTOCNode } from '../types';
+import type { Canvas, Manifest, Range } from '@iiif/presentation-3';
+import { Traverse } from '@iiif/parser';
+import { convertPresentation2 } from '@iiif/parser/presentation-2';
+import { parseCanvas } from './canvas';
+import { getLabel, getMetadata } from './resource';
+import type { 
+  CozyCanvas, 
+  CozyManifest, 
+  CozyRange, 
+  CozyTOC, 
+  CozyTOCNode 
+} from '../types';
+
+export const parseManifestResource = (resource: any, majorVersion: number): CozyManifest => {
+
+  const parseV3 = (manifest: Manifest) => {
+    const sourceCanvases: Canvas[] = [];
+    const sourceRanges: Range[] = [];
+
+    const modelBuilder = new Traverse({
+      canvas: [canvas => { if (canvas.items) sourceCanvases.push(canvas) }],
+      range: [range => { if (range.type === 'Range') sourceRanges.push(range) }]
+    });
+  
+    modelBuilder.traverseManifest(manifest);
+    
+    const canvases = sourceCanvases.map(parseCanvas);
+
+    const toRange = (source: Range): CozyRange => {
+      const items = source.items || [];
+
+      const nestedCanvases: CozyCanvas[] = items
+        .filter((item: any) => item.type === 'Canvas')
+        .map((item: any) => canvases.find(c => c.id === item.id)!)
+        .filter(Boolean);
+
+      const nestedRanges = items
+        .filter((item: any) => item.type === 'Range')
+        .map((item: any) => toRange(item));
+
+      const nestedItems = [...nestedCanvases, ...nestedRanges];
+        
+      return {
+        source,
+        id: source.id,
+        // Maintain original order
+        items: items.map((i: any) => nestedItems.find(cozy => cozy.id === i.id)),
+        canvases: nestedCanvases,
+        ranges: nestedRanges,
+        getLabel: getLabel(source)
+      } as CozyRange;
+    }
+
+    const ranges = sourceRanges.map((source: Range) => toRange(source));
+    return { canvases, ranges };
+  }
+
+  const v3: Manifest = majorVersion === 2 ? convertPresentation2(resource) : resource;
+
+  const { canvases, ranges } = parseV3(v3);
+
+  return {
+    source: v3,
+    id: v3.id,
+    majorVersion,
+    canvases,
+    structure: ranges,
+    getLabel: getLabel(v3),
+    getMetadata: getMetadata(v3),
+    getTableOfContents: getTableOfContents(ranges)
+  }
+}
+
+// A range with a single canvas child is, logically, that canvas
+const isLogicalLeaf = (node: CozyTOCNode): boolean =>
+  node.type === 'range' &&
+  node.children.length === 1 &&
+  node.children[0].type === 'canvas';
+
+// The canvas or range this node stands for in navigation
+const toNavItem = (node: CozyTOCNode): CozyCanvas | CozyRange =>
+  node.type === 'canvas' ? node.source as CozyCanvas
+  : isLogicalLeaf(node) ? node.children[0].source as CozyCanvas
+  : node.source as CozyRange;
 
 export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
   const index = new Map<string, CozyTOCNode>();
@@ -46,17 +129,7 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
 
     // From the actual child ToC Nodes, infer the "logical" child navItems
     // (canvases) and navSections (ranges).
-    const navChildren = node.children.map(n => {
-      if (n.type === 'canvas') {
-        // An actual leaf node
-        return n.source as CozyCanvas;
-      } else if (n.children.length === 1 && n.children[0].type === 'canvas') {
-        // A range with a single canvas child - logical leaf node!
-        return n.children[0].source as CozyCanvas;
-      } else {
-        return n.source as CozyRange;
-      }
-    });
+    const navChildren = node.children.map(toNavItem);
 
     const navItems = navChildren.filter(c => c.source.type === 'Canvas') as CozyCanvas[];
     const navSections = navChildren.filter(c => c.source.type === 'Range') as CozyRange[];
@@ -89,27 +162,19 @@ export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
     return addParent(thisNode);
   }
 
-  const getNavParent = (canvasId: string) => {
+  const getNavParent = (canvasId: string): CozyRange | undefined => {
     const node = index.get(canvasId);
-
-    // Canvas node doesn't exist
     if (!node || node.type !== 'canvas') return;
 
-    // Canvas node doesn't have a range parent
-    if (!(node.parent?.type === 'range')) return;
+    const parent = node.parent;
+    if (!parent || parent.type !== 'range') return;
 
-    const { parent } = node;
+    if (isLogicalLeaf(parent))
+      return parent.parent?.type === 'range'
+        ? parent.parent.source as CozyRange
+        : undefined;
 
-    if (parent.children.length === 1 && parent.children[0].type === 'canvas') {
-      // A range with a single canvas child - logical leaf node!
-      if (parent.parent?.type === 'range') {
-        return parent.parent.source as CozyRange;
-      } else {
-        return;
-      }
-    } else {
-      return parent.source as CozyRange;
-    }
+    return parent.source as CozyRange;
   }
 
   const enumerateNodes = (type?: 'range' | 'canvas'): CozyTOCNode[] => {
