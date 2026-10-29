@@ -11,39 +11,50 @@ export const isImageService = (data: any): data is ImageService => {
   );
 }
 
+const getProfileLevel = (profile: any) => {
+  const labels = ['level0', 'level1', 'level2'];
+  const profiles = Array.isArray(profile) ? profile : profile ? [profile] : [];
+  
+  const levels = profiles
+    .map(p => {
+      // Coerce safely to string just in case a v3 profile comes in as an object
+      const str = typeof p === 'object' && p !== null && 'id' in p 
+        ? String((p as any).id) 
+        : String(p ?? '');
+        
+      return labels.findIndex(level => str.toLowerCase().includes(level));
+    })
+    .filter(l => l > -1)
+    .sort((a, b) => b - a); 
+
+  return levels.length > 0 ? levels[0] : undefined;
+}
+
 export const parseImageService = (service: Service) => {
   const t = getPropertyValue<string>(service, 'type');
   const context = getPropertyValue<string>(service, 'context');
 
-  if (t === 'ImageService2' || context?.includes('image/2')) {
-    const service2 = service as ImageService2;
+  const s = service as ImageService;
+  const p = getPropertyValue<any>(s, 'profile');
+  const profileLevel = getProfileLevel(p);
+  
+  if (t === 'ImageService2' || context?.includes('image/2'))
+    return { majorVersion: 2, profileLevel };
+  
+  if (t === 'ImageService3' || context?.includes('image/3'))
+    return { majorVersion: 3, profileLevel };
 
-    const p = getPropertyValue<string>(service2, 'profile');
-
-    const labels = ['level0', 'level1', 'level2'];
-    const profiles = Array.isArray(p) ? p: p ? [p] : [];
-
-    const levels = profiles
-      .map(profile => labels.findIndex(level => profile.toString().includes(level)))
-      .filter(l => l > -1)
-      .sort((a, b) => b - a); // Sort descending
-
-    return { majorVersion: 2, profileLevel: levels[0] };
-  } else if (t || context) {
-    // Image API 3
-    const service3 = service as ImageService3;
-    return { majorVersion: 3, profileLevel: parseInt(service3.profile)}
+  // Fallback / future-proofing for newer contexts (e.g., image/4)
+  if (context?.includes('image/')) {
+    const match = context.match(/image\/(\d+)/);
+    const majorVersion = match ? parseInt(match[1], 10) : 3;
+    return { majorVersion, profileLevel };
   }
+
+  return { majorVersion: 3, profileLevel };
 }
 
 // export const getProfileLevel = (service: Service): 0 | 1 | 2 | undefined; 
-// export const isLevel0 = (service: Service): boolean;   
-
-
-
-
-
-
-
+// export const isLevel0 = (service: Service): boolean;
 
 

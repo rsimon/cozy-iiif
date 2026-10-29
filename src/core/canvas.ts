@@ -11,6 +11,8 @@ import {
  } from './image';
 
 export const parseCanvas = (canvas: Canvas) => {
+  console.log('PARSING CANVAS');
+
   const images = getImages(canvas);
 
   return {
@@ -33,13 +35,15 @@ const isPainting = (arg?: AnyMotivation | AnyMotivation[]) =>
 export const getImages = (canvas: Canvas): CozyImageResource[] => {
   const images: CozyImageResource[] = [];
 
+  console.log('asdfasfasdf - 1');
+
   const builder = new Traverse({
     annotation: [anno => {
       if (isPainting(anno.motivation)) {
         const bodies = anno.body ? 
           Array.isArray(anno.body) ? anno.body : [anno.body] 
           : [];
-
+        
         const target = parseTarget(anno.target);
 
         const imageBodies = bodies.filter(b => 

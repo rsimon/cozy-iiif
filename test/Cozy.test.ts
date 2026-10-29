@@ -1,78 +1,47 @@
 import { describe, it, expect } from 'vitest';
-import { Cozy, CozyCanvas, CozyCollection, CozyManifest, DynamicImageServiceResource, StaticImageResource } from '../src';
+import { 
+  Cozy, 
+  CozyCanvas, 
+  CozyCollection, 
+  CozyManifest, 
+  DynamicImageServiceResource 
+} from '../src';
 
 import { 
+  // Collection manifest
+  COLLECTION_V2,
+
+  // Presentaiton manifests
+  MANIFEST_SHARED_CANVAS,
+  MANIFEST_V2_MULTI_IMAGE_CANVAS,
+  MANIFEST_V3_LEVEL_0,
+  MANIFEST_V3_CROPPED_IMAGES,
+  MANIFEST_V4,
+
+  // Image info.json
+  INFO_V3_LEVEL_1,
+
+  // Other
   CANVAS_WITH_SPECIFIC_RESOURCE,
-  COLLECTION,
-  CROPPED_IMAGES,
-  INFO_JSON_V3,
-  SHARED_CANVAS,
-  V4_BASIC,
-  WITH_MULTI_IMAGE
 } from './fixtures';
 
 describe('Cozy', () => {
 
   it('should parse collection manifests correctly', async () => {
-    const result = await Cozy.parseURL(COLLECTION);
+    const result = await Cozy.parseURL(COLLECTION_V2);
     expect(result.type).toBe('collection');
 
     const collection = (result as any).resource as CozyCollection;
     expect(collection.items.length).toBe(16);
   });
 
-  it('should allow (deprecated) shared-canvas manifests', async () => {
-    const result = await Cozy.parseURL(SHARED_CANVAS);
+  it('should parse (deprecated) shared-canvas manifests', async () => {
+    const result = await Cozy.parseURL(MANIFEST_SHARED_CANVAS);
     expect(result.type).toBe('manifest');
   }),
 
-  it('should parse the v3 info.json correctly', async () => {
-    const result = await Cozy.parseURL(INFO_JSON_V3);
-    expect(result.type).toBe('iiif-image');
-
-    const resource = (result as any).resource as DynamicImageServiceResource;
-
-    expect(resource.width).toBe(4032);
-    expect(resource.height).toBe(3024);
-    expect(resource.type).toBe('dynamic');
-    expect(resource.serviceUrl).toBe('https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/info.json')
-
-    const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
-    expect(regionURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/!400,400/0/default.jpg')
-
-    const imageURL = resource.getImageURL(800);
-    expect(imageURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
-  });
-
-  it('should parse a v4 presentation manifest correctly', async () => {
-      const result = await Cozy.parseURL(V4_BASIC);
-      expect(result.type).toBe('manifest');
-
-      const manifest = (result as any).resource as CozyManifest;
-      expect(manifest.canvases.length).toBe(1);
-
-      const canvas = manifest.canvases[0];
-      expect(canvas.width).toBe(1200);
-      expect(canvas.height).toBe(1800);
-      expect(canvas.images.length).toBe(1);
-
-      const image = canvas.images[0];
-      expect(image.type).toBe('static');
-      expect(image.getImageURL()).toBe('https://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png');
-  });
-  
-  it('should parse a canvas resource with a SpecificResource annotation correctly', () => {
-    const result = Cozy.parse(CANVAS_WITH_SPECIFIC_RESOURCE);
-    expect(result.type).toBe('canvas');
-
-    const canvas = (result as any).resource as CozyCanvas;
-    expect(canvas.images.length).toBe(1);
-  });
-  
-  it('should parse a multi-image canvas correctly', () => {
-    const result = Cozy.parse(WITH_MULTI_IMAGE);
+  it('should parse a v2 manifest correctly (incl. multi-image canvas)', () => {
+    const result = Cozy.parse(MANIFEST_V2_MULTI_IMAGE_CANVAS);
     expect(result.type).toBe('manifest');
 
     const manifest = (result as any).resource as CozyManifest;
@@ -91,8 +60,22 @@ describe('Cozy', () => {
     expect(positionedImage.target?.h).toBe(2929);
   });
 
-  it('should parse cropped images correctly', () => {
-    const result = Cozy.parse(CROPPED_IMAGES);
+  it('should parse a v3 manifest with Level 0 services correctly', () => {
+    const result = Cozy.parse(MANIFEST_V3_LEVEL_0);
+    expect(result.type).toBe('manifest');
+
+    const manifest = (result as any).resource as CozyManifest;
+    expect(manifest.canvases.length).toBe(1);
+
+    const images = manifest.canvases[0].images;
+    expect(images.length).toBe(1);
+
+    const image = images[0];
+    expect(image.type).toBe('level0');
+  })
+
+   it('should parse a v3 manifest correctly (incl. cropped images)', () => {
+    const result = Cozy.parse(MANIFEST_V3_CROPPED_IMAGES);
     expect(result.type).toBe('manifest');
 
     const manifest = (result as any).resource as CozyManifest;
@@ -137,6 +120,51 @@ describe('Cozy', () => {
     expect(img2.selector?.y).toBe(793);
     expect(img2.selector?.w).toBe(450);
     expect(img2.selector?.h).toBe(1418);
+  });
+
+  it('should parse a v4 manifest correctly', async () => {
+    const result = await Cozy.parseURL(MANIFEST_V4);
+    expect(result.type).toBe('manifest');
+
+    const manifest = (result as any).resource as CozyManifest;
+    expect(manifest.canvases.length).toBe(1);
+
+    const canvas = manifest.canvases[0];
+    expect(canvas.width).toBe(1200);
+    expect(canvas.height).toBe(1800);
+    expect(canvas.images.length).toBe(1);
+
+    const image = canvas.images[0];
+    expect(image.type).toBe('static');
+    expect(image.getImageURL()).toBe('https://iiif.io/api/presentation/2.1/example/fixtures/resources/page1-full.png');
+  });
+
+  it('should parse a v3 info.json correctly', async () => {
+    const result = await Cozy.parseURL(INFO_V3_LEVEL_1);
+    expect(result.type).toBe('iiif-image');
+
+    const resource = (result as any).resource as DynamicImageServiceResource;
+
+    expect(resource.width).toBe(4032);
+    expect(resource.height).toBe(3024);
+    expect(resource.type).toBe('dynamic');
+    expect(resource.serviceUrl).toBe('https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/info.json')
+
+    const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
+    expect(regionURL).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/!400,400/0/default.jpg')
+
+    const imageURL = resource.getImageURL(800);
+    expect(imageURL).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
+  });
+
+  it('should parse a canvas resource with a SpecificResource annotation correctly', () => {
+    const result = Cozy.parse(CANVAS_WITH_SPECIFIC_RESOURCE);
+    expect(result.type).toBe('canvas');
+
+    const canvas = (result as any).resource as CozyCanvas;
+    expect(canvas.images.length).toBe(1);
   });
 
 });

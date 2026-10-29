@@ -1,19 +1,10 @@
-export const COLLECTION =
+export const COLLECTION_V2 =
   'https://www.davidrumsey.com/luna/servlet/iiif/collection/s/1k986a';
 
-export const WITH_STRUCTURES =
-  'https://lib.is/IE19255085/manifest';
-
-export const INFO_JSON_V3 =
-  'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/info.json';
-
-export const SHARED_CANVAS =
+export const MANIFEST_SHARED_CANVAS=
   'https://ids.si.edu/ids/manifest/FS-8106_06';
 
-export const V4_BASIC = 
-  'https://iiif.io/api/cookbook/recipe/0001-mvm-image/v4/manifest.json';
-
-export const WITH_MULTI_IMAGE = {
+export const MANIFEST_V2_MULTI_IMAGE_CANVAS = {
   '@context': 'http://iiif.io/api/presentation/2/context.json',
   '@type': 'sc:Manifest',
   '@id': 'https://www.example.com/manifest/0001',
@@ -71,54 +62,53 @@ export const WITH_MULTI_IMAGE = {
   ]
 }
 
-export const CANVAS_WITH_SPECIFIC_RESOURCE = {
-  id: 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130',
-  type: 'Canvas',
-  label: {
-    none: [
-      'Test Canvas'
-    ]
+export const MANIFEST_V3_LEVEL_0 = {
+  '@context': 'http://iiif.io/api/presentation/3/context.json',
+  'id': 'https://example.org/iiif/manifest/test-level0.json',
+  'type': 'Manifest',
+  'label': {
+    'en': ['Test Level 0 Manifest']
   },
-  width: 2395,
-  height: 2771,
-  items: [
+  'items': [
     {
-      id: 'https://www.example.com/canvas/01/page',
-      type: 'AnnotationPage',
-      items: [
-        { 
-          id: 'https://www.example.com/canvas/01/annotation/01',
-          type: 'Annotation',
-          motviation: 'painting',
-          body: {
-            type: 'SpecificResource',
-            source: {
-              id: 'https://www.example.com/full/max/0/default.jpg',
-              type: 'Image',
-              format: 'image/jpeg',
-              width: 2395,
-              height: 2771,
-              service: [
-                {
-                  id: 'https://www.example.com',
-                  type: 'ImageService3',
-                  profile: 'level2'
-                }
-              ]
-            },
-            selector: {
-              type: 'ImageApiSelector',
-              region: '160,793,603,1492'
+      'id': 'https://example.org/iiif/canvas/p1',
+      'type': 'Canvas',
+      'height': 2000,
+      'width': 1500,
+      'items': [
+        {
+          'id': 'https://example.org/iiif/canvas/p1/page/1',
+          'type': 'AnnotationPage',
+          'items': [
+            {
+              'id': 'https://example.org/iiif/annotation/p1-image',
+              'type': 'Annotation',
+              'motivation': 'painting',
+              'target': 'https://example.org/iiif/canvas/p1',
+              'body': {
+                'id': 'https://example.org/iiif/image/full/max/0/default.jpg',
+                'type': 'Image',
+                'format': 'image/jpeg',
+                'height': 2000,
+                'width': 1500,
+                'service': [
+                  {
+                    'id': 'https://example.org/iiif/image',
+                    'type': 'ImageService3',
+                    'profile': 'level0',
+                    'protocol': 'http://iiif.io/api/image'
+                  }
+                ]
+              }
             }
-          },
-          target: 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130'
+          ]
         }
       ]
     }
   ]
 }
 
-export const CROPPED_IMAGES = {
+export const MANIFEST_V3_CROPPED_IMAGES = {
   '@context': 'http://iiif.io/api/presentation/3/context.json',
   type: 'Manifest',
   id: 'https://iiif-workbench.rainersimon.io/manifest/0001',
@@ -205,3 +195,57 @@ export const CROPPED_IMAGES = {
     }
   ]
 }
+
+export const MANIFEST_V4 = 
+  'https://iiif.io/api/cookbook/recipe/0001-mvm-image/v4/manifest.json';
+
+export const INFO_V3_LEVEL_1 =
+  'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/info.json';
+
+export const CANVAS_WITH_SPECIFIC_RESOURCE = {
+  id: 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130',
+  type: 'Canvas',
+  label: {
+    none: [
+      'Test Canvas'
+    ]
+  },
+  width: 2395,
+  height: 2771,
+  items: [
+    {
+      id: 'https://www.example.com/canvas/01/page',
+      type: 'AnnotationPage',
+      items: [
+        { 
+          id: 'https://www.example.com/canvas/01/annotation/01',
+          type: 'Annotation',
+          motviation: 'painting',
+          body: {
+            type: 'SpecificResource',
+            source: {
+              id: 'https://www.example.com/full/max/0/default.jpg',
+              type: 'Image',
+              format: 'image/jpeg',
+              width: 2395,
+              height: 2771,
+              service: [
+                {
+                  id: 'https://www.example.com',
+                  type: 'ImageService3',
+                  profile: 'level2'
+                }
+              ]
+            },
+            selector: {
+              type: 'ImageApiSelector',
+              region: '160,793,603,1492'
+            }
+          },
+          target: 'https://melod.uib.no/iiif/presentation/dra/DRA_0069/canvas/DRA_0069-70_MG_3130'
+        }
+      ]
+    }
+  ]
+}
+
