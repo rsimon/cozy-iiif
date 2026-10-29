@@ -1,36 +1,66 @@
-import type { Canvas, IIIFExternalWebResource, Selector, SpecificResource } from '@iiif/presentation-3';
+import type { Canvas, IIIFExternalWebResource, SpecificResource } from '@iiif/presentation-3';
 import { Traverse, type AnyMotivation } from '@iiif/parser';
-import { getPropertyValue } from './resource';
-import { parseFragmentSelector } from './selector';
+import type { CozyCanvas, CozyImageResource } from '../types';
+import { getLabel, getMetadata } from './resource';
+import { parseTarget } from './selector';
 import { 
-  getImageURL, 
+  createCozyImageResource, 
+  getMinSizeDimensions, 
   getImageURLFromService, 
-  getPixelSizeFromServiceUrl, 
-  getRegionURL, 
-  getStaticImagePixelSize, 
-  isImageService, 
-  normalizeServiceUrl, 
-  parseImageService 
-} from './image-service';
-import type { 
-  Bounds,
-  CozyImageResource, 
-  DynamicImageServiceResource, 
-  ImageServiceResource, 
-  Level0ImageServiceResource, 
-  StaticImageResource 
-} from '../types';
+  isImageService
+ } from './image';
+
+export const parseCanvas = (canvas: Canvas) => {
+  const images = getImages(canvas);
+
+  return {
+    source: canvas,
+    id: canvas.id,
+    width: canvas.width,
+    height: canvas.height,
+    images,
+    annotations: (canvas.annotations || []),
+    getImageURL: images.length > 0 ? images[0].getImageURL : () => undefined,
+    getLabel: getLabel(canvas),
+    getMetadata: getMetadata(canvas),
+    getThumbnailURL: getThumbnailURL(canvas, images)
+  } as CozyCanvas;
+}
+
+const isPainting = (arg?: AnyMotivation | AnyMotivation[]) => 
+  arg ? Array.isArray(arg) ? arg.includes('painting') : arg === 'painting' : true;
+
+export const getImages = (canvas: Canvas): CozyImageResource[] => {
+  const images: CozyImageResource[] = [];
+
+  const builder = new Traverse({
+    annotation: [anno => {
+      if (isPainting(anno.motivation)) {
+        const bodies = anno.body ? 
+          Array.isArray(anno.body) ? anno.body : [anno.body] 
+          : [];
+
+        const target = parseTarget(anno.target);
+
+        const imageBodies = bodies.filter(b => 
+          (b as IIIFExternalWebResource).type === 'Image' || 
+          (b as SpecificResource).type === 'SpecificResource' && (b as SpecificResource).source?.type === 'Image');
+
+        images.push(...imageBodies.map(body => createCozyImageResource(body as IIIFExternalWebResource, target)));
+      }
+    }]
+  });
+
+  builder.traverseCanvas(canvas);
+
+  return images;
+}
 
 export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []) => (minSize = 400) => {
   const { width, height } = canvas;
-
   if (!width || !height) return;
 
-  const aspect = width / height;
-  const isPortrait = aspect < 1;
-  
-  const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
-  const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
+  const { w, h } = getMinSizeDimensions(width, height, minSize);
 
   if (canvas.thumbnail && canvas.thumbnail.length > 0) {
     const thumbnail = canvas.thumbnail[0];
@@ -53,135 +83,3 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
   }
 }
 
-const parseRegion = (selector?: Selector | Selector[]): Bounds | undefined => {
-  if (!selector) return;
-  
-  if (Array.isArray(selector)) {
-    console.warn('Unsupported selector (array)');
-    return;
-  }
-
-  // For now, ImageApiSelector and FragmentSelector are the only supported selector types
-  if (typeof selector !== 'object') {
-    console.warn('Unsuppoted selector', selector);
-    return;
-  }
-
-  if (selector.type === 'ImageApiSelector' && selector.region) {
-    const [x, y, w, h] = selector.region.split(',').map(str => parseFloat(str.trim()));
-    return { x, y, w, h };
-  } else if (selector.type === 'FragmentSelector') {
-    return parseFragmentSelector(selector.value);
-  }
-
-  return;
-}
-
-const toCozyImageResource = (resource: IIIFExternalWebResource | SpecificResource, target?: Bounds) => {
-  const image = resource.type === 'SpecificResource' ? resource.source : resource;
-  
-  const selector = resource.type === 'SpecificResource' ? parseRegion(resource.selector) : undefined;
-
-  const { format, height, width } = image;
-
-  const id = getPropertyValue(resource, 'id');
-
-  const imageService = (image.service || []).find(isImageService);
-
-  const service = imageService ? parseImageService(imageService) : undefined; 
-
-  if (imageService && service) {
-    const serviceUrl = normalizeServiceUrl(getPropertyValue<string>(imageService, 'id'));
-
-    const image = {
-      source: resource,
-      type: service.profileLevel === 0 ? 'level0' : 'dynamic',
-      service: imageService,
-      width,
-      height,
-      majorVersion: service.majorVersion,
-      serviceUrl,
-      target,
-      selector,
-      getImageURL: getImageURL(width, height, imageService),
-      getPixelSize: getPixelSizeFromServiceUrl(serviceUrl)
-    } as ImageServiceResource;
-
-    if (service.profileLevel === 0) {
-      return image as Level0ImageServiceResource;
-    } else {
-      return {
-        ...image,
-        getRegionURL: getRegionURL(image)
-      } as DynamicImageServiceResource;
-    }
-  } else {
-    return {
-      source: resource,
-      type: 'static',
-      width,
-      height,
-      url: id,
-      format,
-      selector,
-      getImageURL: () => id,
-      getPixelSize: getStaticImagePixelSize(id)
-    } as StaticImageResource;
-  }
-} 
-
-const toCanvasTarget = (target: any): Bounds | undefined => {
-  const parseBounds = (xywh: string): Bounds | undefined => {
-    const coords = xywh.replace('xywh=', '').split(',').map(Number);
-    if (coords.length === 4 && coords.every(n => !isNaN(n))) {
-      const [x, y, w, h] = coords;
-      return { x, y, w, h };
-    }
-  }
-
-  // SpecificResource object with FragmentSelector
-  if (target && typeof target === 'object') {
-    const selector = Array.isArray(target.selector) 
-      ? target.selector.find((s: any) => s.type === 'FragmentSelector')
-      : target.selector?.type === 'FragmentSelector' ? target.selector : null;
-
-    if (selector?.value)
-      return parseBounds(selector.value);
-  }
-
-  // Plain string, with or without #xywh fragment
-  if (typeof target === 'string') {
-    const hash = target.split('#')[1];
-    if (hash?.startsWith('xywh='))
-      return parseBounds(hash);
-  }
-}
-
-export const getImages = (canvas: Canvas): CozyImageResource[] => {
-  const images: CozyImageResource[] = [];
-
-  const isPainting = (arg?: AnyMotivation | AnyMotivation[]) => 
-    arg ? Array.isArray(arg) ? arg.includes('painting') : arg === 'painting' : true;
-
-  const builder = new Traverse({
-    annotation: [anno => {
-      if (isPainting(anno.motivation)) {
-        const bodies = anno.body ? 
-          Array.isArray(anno.body) ? anno.body : [anno.body] 
-          : [];
-
-        const target = toCanvasTarget(anno.target);
-
-        const imageBodies = bodies.filter(b => 
-          (b as IIIFExternalWebResource).type === 'Image' || 
-          (b as SpecificResource).type === 'SpecificResource' && (b as SpecificResource).source?.type === 'Image');
-
-        images.push(...imageBodies.map(body => toCozyImageResource(body as IIIFExternalWebResource, target)));
-      }
-    }]
-  });
-
-  builder.traverseCanvas(canvas);
-
-  return images;
-}
