@@ -132,8 +132,8 @@ const bounds = {
 // With default minimum shortest dimension (400px);
 console.log(image.getRegionURL(bounds));
 
-// With custom minimum shorted dimension
-console.log(image.getRegionURL(bounds, 800));
+// With custom minimum shortest dimension and 0 rotation
+console.log(image.getRegionURL(bounds, 0, { minSize: 800 }));
 
 // Full image with custom minimum shorted dimension
 console.log(image.getImageURL(800));
