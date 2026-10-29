@@ -1,5 +1,4 @@
-import type { IIIFExternalWebResource, SpecificResource } from '@iiif/parser';
-import type { Service } from '@iiif/presentation-3';
+import type { IIIFExternalWebResource, Service, SpecificResource } from '@iiif/presentation-3';
 import { getPropertyValue } from '../resource';
 import { parseRegion } from '../selector';
 import { getPixelSizeFromServiceUrl, normalizeServiceUrl } from './info';
