@@ -20,7 +20,7 @@ const clampRegion = (info: Level0ImageInfo, region: Bounds): Bounds => {
  * CSS variant: the best single image for the region, plus the crop rectangle
  * (in that image's pixels) that the consuming app should show.
  */
-export const getLevel0Crop = (
+export const cropRegionFromTile = (
   info: Level0ImageInfo,
   bounds: Bounds,
   minWidth?: number
@@ -92,7 +92,7 @@ const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTil
  * Canvas variant: renders the region as an actual image, stitching tiles if needed.
  * `minWidth` defaults to the region's native width.
  */
-export const cropRegion = async (
+export const cropStitchedRegion = async (
   source: Level0ImageInfo | Level0ImageServiceResource, 
   bounds: Bounds
 ): Promise<Blob> => {
@@ -161,5 +161,9 @@ export const cropRegion = async (
       0.95
     );
   });
+
+}
+
+export const cropBounds = () => {
 
 }

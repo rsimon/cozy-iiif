@@ -21,7 +21,7 @@ const getMinWidth = (info: Level0ImageInfo, minSize?: Partial<Size>) => {
  * The best Level 0 image for the whole picture at (at least) the given size.
  * Use the URL directly, and let CSS scale it down to the exact size.
  */
-export const getBestMatchingThumbnailTile = (info: Level0ImageInfo, minSize?: Partial<Size>): Tile => {
+export const getThumbnailTile = (info: Level0ImageInfo, minSize?: Partial<Size>): Tile => {
   const fullRegion: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
 
   const tile = getLevel0Tile(info, fullRegion, getMinWidth(info, minSize));
@@ -114,7 +114,7 @@ const getThumbnailTiles = (info: Level0ImageInfo, minSize?: Partial<Size>): Stit
   return tiles;
 }
 
-export const renderThumbnail = async (
+export const getStitchedThumbnail = async (
   source: Level0ImageInfo | Level0ImageServiceResource,
   minSize?: Partial<Size>
 ): Promise<Blob> => {
