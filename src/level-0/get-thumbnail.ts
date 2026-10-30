@@ -4,7 +4,7 @@ import { getLevel0Tile } from './utils';
 import type { Bounds, Level0ImageInfo, Level0ImageServiceResource, Size } from '../types';
 import { fetchImageInfo } from '../helpers';
 
-const DEFAULT_MIN_WIDTH = window.devicePixelRatio * 200;
+const DEFAULT_MIN_WIDTH = 400;
 
 /** Translates a min width and/or min height into a min width. Never exceeds the full image. */
 const getMinWidth = (info: Level0ImageInfo, minSize?: Partial<Size>) => {
