@@ -3,16 +3,19 @@ import type { Bounds } from '../types';
 
 const MAX_FRAGMENT_LENGTH = 512; // ReDoS guard
 
-const number = '-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?';
+const NUMBER = '-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?';
 
+const XYWH = new RegExp(
+  `(xywh)=((?:pixel|percent))?:?(${NUMBER}),(${NUMBER}),(${NUMBER}),(${NUMBER})$`,
+);
+
+/**
+ * Parses the Bounds from a W3C FragmentSelector fragment string.
+ */
 export const parseFragmentSelector = (fragment: string): Bounds => {
   if (fragment.length > MAX_FRAGMENT_LENGTH) throw new Error('Fragment too long: ' + fragment);
 
-  const regex = new RegExp(
-    `(xywh)=((?:pixel|percent))?:?(${number}),(${number}),(${number}),(${number})$`,
-  );
-  
-  const matches = regex.exec(fragment);
+  const matches = XYWH.exec(fragment);
 
   if (!matches) throw new Error('Not a MediaFragment: ' + fragment);
 
@@ -26,6 +29,9 @@ export const parseFragmentSelector = (fragment: string): Bounds => {
   return { x, y, w, h };
 }
 
+/**
+ * Parses a raw JSON IIIF Selector into Bounds.
+ */
 export const parseRegion = (selector?: Selector | Selector[]): Bounds | undefined => {
   if (!selector) return;
   
@@ -51,28 +57,24 @@ export const parseRegion = (selector?: Selector | Selector[]): Bounds | undefine
 }
 
 export const parseTarget = (target: any): Bounds | undefined => {
-  const parseBounds = (xywh: string): Bounds | undefined => {
-    const coords = xywh.replace('xywh=', '').split(',').map(Number);
-    if (coords.length === 4 && coords.every(n => !isNaN(n))) {
-      const [x, y, w, h] = coords;
-      return { x, y, w, h };
+  try {
+    // SpecificResource object with FragmentSelector
+    if (target && typeof target === 'object') {
+      const selector = Array.isArray(target.selector) 
+        ? target.selector.find((s: any) => s.type === 'FragmentSelector')
+        : target.selector?.type === 'FragmentSelector' ? target.selector : null;
+
+      if (selector?.value)
+        return parseFragmentSelector(selector.value);
     }
-  }
 
-  // SpecificResource object with FragmentSelector
-  if (target && typeof target === 'object') {
-    const selector = Array.isArray(target.selector) 
-      ? target.selector.find((s: any) => s.type === 'FragmentSelector')
-      : target.selector?.type === 'FragmentSelector' ? target.selector : null;
-
-    if (selector?.value)
-      return parseBounds(selector.value);
-  }
-
-  // Plain string, with or without #xywh fragment
-  if (typeof target === 'string') {
-    const hash = target.split('#')[1];
-    if (hash?.startsWith('xywh='))
-      return parseBounds(hash);
+    // Plain string, with or without #xywh fragment
+    if (typeof target === 'string') {
+      const hash = target.split('#')[1];
+      if (hash?.startsWith('xywh='))
+        return parseFragmentSelector(hash);
+    }
+  } catch (error) {
+    console.error(error);
   }
 }

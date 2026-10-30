@@ -3,6 +3,9 @@ import { getPropertyValue } from '../resource';
 
 type ImageService = ImageService2 | ImageService3;
 
+/**
+ * Tests if the given raw JSON represents a IIIF Image Service
+ */
 export const isImageService = (data: any): data is ImageService => {
   const t = getPropertyValue<string>(data, 'type');
 
@@ -30,6 +33,10 @@ const getProfileLevel = (profile: any) => {
   return levels.length > 0 ? levels[0] : undefined;
 }
 
+/**
+ * Parses the raw JSON IIIF Image Service, returning major API version and
+ * profile level.
+ */
 export const parseImageService = (service: Service) => {
   const t = getPropertyValue<string>(service, 'type');
   const context = getPropertyValue<string>(service, 'context');

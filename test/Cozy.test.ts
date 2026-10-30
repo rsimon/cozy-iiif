@@ -4,6 +4,7 @@ import {
   CozyCanvas, 
   CozyCollection, 
   CozyManifest, 
+  DynamicImageInfo, 
   DynamicImageServiceResource 
 } from '../src';
 
@@ -143,20 +144,34 @@ describe('Cozy', () => {
     const result = await Cozy.parseURL(INFO_V3_LEVEL_1);
     expect(result.type).toBe('iiif-image');
 
-    const resource = (result as any).resource as DynamicImageServiceResource;
+    const resource = (result as any).resource as DynamicImageInfo;
 
+    expect(resource.id)
+      .toBe('https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen')
+
+    expect(resource.serviceUrl)
+      .toBe('https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/info.json')
+
+    expect(resource.type).toBe('dynamic');
     expect(resource.width).toBe(4032);
     expect(resource.height).toBe(3024);
-    expect(resource.type).toBe('dynamic');
-    expect(resource.serviceUrl).toBe('https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/info.json')
+    expect(resource.majorVersion).toBe(3);
+    expect(resource.profileLevel).toBe(1);
+    expect(resource.sizes.length).toBe(0);
+    expect(resource.tiles.length).toBe(1);
 
-    const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
-    expect(regionURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/!400,400/0/default.jpg')
+    const tiles = resource.tiles[0];
+    expect(tiles.height).toBe(512);
+    expect(tiles.width).toBe(512);
+    expect(tiles.scaleFactors.length).toBe(3);
 
     const imageURL = resource.getImageURL(800);
     expect(imageURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
+
+    const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
+    expect(regionURL).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/!400,400/0/default.jpg')
   });
 
   it('should parse a canvas resource with a SpecificResource annotation correctly', () => {

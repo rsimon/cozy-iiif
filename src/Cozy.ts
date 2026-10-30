@@ -3,7 +3,7 @@ import {
   getPropertyValue, 
   parseCanvas, 
   parseCollectionResource,
-  parseImageResource,
+  parseImageInfo,
   parseManifestResource 
 } from './core';
 
@@ -121,7 +121,7 @@ const parse = (json: any, url?: string): CozyParseResult => {
   }
   
   if (context.includes('image/2') || context.includes('image/3')) {
-    const resource = parseImageResource(json);
+    const resource = parseImageInfo(json);
     return resource ? {
       type: 'iiif-image',
       url: url || id,

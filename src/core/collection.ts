@@ -4,6 +4,9 @@ import { convertPresentation2 } from '@iiif/parser/presentation-2';
 import type { CozyCollection, CozyCollectionItem } from '../types';
 import { getLabel, getMetadata, getPropertyValue } from './resource';
 
+/**
+ * Parse raw JSON presentation API Collection into a CozyCollection.
+ */
 export const parseCollectionResource = (resource: any, majorVersion: number): CozyCollection => {
 
   const parseV3 = (collection: Collection) => {

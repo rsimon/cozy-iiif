@@ -1,10 +1,10 @@
-import type { CozyImageResource } from './image';
 import type { CozyCanvas, CozyCollection, CozyManifest } from './presentation';
+import type { CozyImageInfo } from './info';
 
 export type CozyParseResult = 
   | { type: 'collection', url: string, resource: CozyCollection }
   | { type: 'manifest'; url: string, resource: CozyManifest }
-  | { type: 'iiif-image'; url: string, resource: CozyImageResource }
+  | { type: 'iiif-image'; url: string, resource: CozyImageInfo }
   | { type: 'canvas', resource: CozyCanvas }
   | { type: 'plain-image'; url: string }
   | { type: 'webpage'; url: string }

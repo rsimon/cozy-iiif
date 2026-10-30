@@ -1,6 +1,8 @@
 import type { InternationalString, MetadataItem } from '@iiif/presentation-3';
 import type { CozyMetadata } from '../types';
 
+// General JSON/IIIF resource helpers
+
 export const getPropertyValue = <T extends unknown = any>(data: any, name: string) => {
   let prop: any = data[name];
 

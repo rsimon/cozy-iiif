@@ -1,4 +1,5 @@
 import type { IIIFExternalWebResource, Service } from '@iiif/presentation-3';
+import type { Size } from './info';
 
 export type CozyImageResource = 
   | StaticImageResource 
@@ -24,8 +25,6 @@ interface BaseImageResource {
 
   getImageURL(minSize?: number, rotation?: Rotation): string;
 
-  getPixelSize(): Promise<{ width: number, height: number }>;
-
 }
 
 export interface StaticImageResource extends BaseImageResource {
@@ -33,6 +32,8 @@ export interface StaticImageResource extends BaseImageResource {
   readonly type: 'static';
 
   readonly url: string;
+
+  getPixelSize(): Promise<Size>;
 
 }
 
@@ -45,6 +46,8 @@ export interface DynamicImageServiceResource extends BaseImageResource {
   readonly serviceUrl: string;
 
   readonly majorVersion: number;
+
+  readonly profileLevel: number;
 
   getRegionURL(bounds: Bounds, rotation?: Rotation, opts?: GetRegionURLOpts): string;
 

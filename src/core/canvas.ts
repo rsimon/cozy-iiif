@@ -4,15 +4,16 @@ import type { CozyCanvas, CozyImageResource } from '../types';
 import { getLabel, getMetadata } from './resource';
 import { parseTarget } from './selector';
 import { 
-  createCozyImageResource, 
+  getImageURL,
   getMinSizeDimensions, 
-  getImageURLFromService, 
-  isImageService
+  isImageService,
+  parseImageResource
  } from './image';
 
-export const parseCanvas = (canvas: Canvas) => {
-  console.log('PARSING CANVAS');
-
+/**
+ * Parse raw JSON presentation API Canvas into a CozyCanvas.
+ */
+export const parseCanvas = (canvas: Canvas): CozyCanvas => {
   const images = getImages(canvas);
 
   return {
@@ -29,13 +30,15 @@ export const parseCanvas = (canvas: Canvas) => {
   } as CozyCanvas;
 }
 
-const isPainting = (arg?: AnyMotivation | AnyMotivation[]) => 
-  arg ? Array.isArray(arg) ? arg.includes('painting') : arg === 'painting' : true;
-
+/**
+ * From a raw JSON presentation API Canvas, get each
+ * image 'painting' annotation as a CozyImageResouce.
+ */
 export const getImages = (canvas: Canvas): CozyImageResource[] => {
   const images: CozyImageResource[] = [];
 
-  console.log('asdfasfasdf - 1');
+  const isPainting = (arg?: AnyMotivation | AnyMotivation[]) => 
+    arg ? Array.isArray(arg) ? arg.includes('painting') : arg === 'painting' : true;
 
   const builder = new Traverse({
     annotation: [anno => {
@@ -50,7 +53,7 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
           (b as IIIFExternalWebResource).type === 'Image' || 
           (b as SpecificResource).type === 'SpecificResource' && (b as SpecificResource).source?.type === 'Image');
 
-        images.push(...imageBodies.map(body => createCozyImageResource(body as IIIFExternalWebResource, target)));
+        images.push(...imageBodies.map(body => parseImageResource(body as IIIFExternalWebResource, target)));
       }
     }]
   });
@@ -60,7 +63,16 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
   return images;
 }
 
-export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []) => (minSize = 400) => {
+/**
+ * Returns a thumbnail URL for the given (raw JSON) presentation API 
+ * Canvas. Prefers the `thumbnail` property on the canvas, if available, 
+ * or picks the first available image resource on the Canvas. (Optionally,
+ * provide a list of CozyImageResources to override.)
+ */
+export const getThumbnailURL = (
+  canvas: Canvas, 
+  images: CozyImageResource[] = getImages(canvas)
+) => (minSize = 400): string | undefined => {
   const { width, height } = canvas;
   if (!width || !height) return;
 
@@ -72,7 +84,7 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
     if ('service' in thumbnail && Array.isArray(thumbnail.service)) {
       const service = thumbnail.service.find(s => isImageService(s));
       if (service)
-        return getImageURLFromService(service, w, h);
+        return getImageURL(w, h, service)();
     }
 
     if ('id' in thumbnail) return thumbnail.id;
@@ -80,7 +92,7 @@ export const getThumbnailURL = (canvas: Canvas, images: CozyImageResource[] = []
 
   for (const image of images) {
     if (image.type === 'dynamic' || image.type === 'level0') {
-      return getImageURLFromService(image.service, w, h);
+      return getImageURL(w, h, image.service)();
     } else if (image.type === 'static') {
       return image.url;
     }    

@@ -11,6 +11,9 @@ import type {
   CozyTOCNode 
 } from '../types';
 
+/**
+ * Parse raw JSON presentation API Manifest into a CozyManifest.
+ */
 export const parseManifestResource = (resource: any, majorVersion: number): CozyManifest => {
 
   const parseV3 = (manifest: Manifest) => {
@@ -71,18 +74,21 @@ export const parseManifestResource = (resource: any, majorVersion: number): Cozy
   }
 }
 
-// A range with a single canvas child is, logically, that canvas
+// Range with a single Canvas is logically treated as that Canvas in the ToC
 const isLogicalLeaf = (node: CozyTOCNode): boolean =>
   node.type === 'range' &&
   node.children.length === 1 &&
   node.children[0].type === 'canvas';
 
-// The canvas or range this node stands for in navigation
+// Canvas or Range this node stands for in ToC navigation
 const toNavItem = (node: CozyTOCNode): CozyCanvas | CozyRange =>
   node.type === 'canvas' ? node.source as CozyCanvas
   : isLogicalLeaf(node) ? node.children[0].source as CozyCanvas
   : node.source as CozyRange;
 
+/**
+ * Return the Table of Contents for the given CozyRanges.
+ */
 export const getTableOfContents = (ranges: CozyRange[]) => (): CozyTOC => {
   const index = new Map<string, CozyTOCNode>();
 

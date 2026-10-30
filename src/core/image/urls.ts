@@ -1,10 +1,10 @@
-// Smallest width × height, in the aspect ratio of the source, whose
-
 import type { Service } from "@iiif/presentation-3";
-import type { Bounds, GetRegionURLOpts, Rotation } from "../../types";
+import type { Bounds, CozyImageResource, GetRegionURLOpts, Rotation } from "../../types";
 import { getPropertyValue } from "../resource";
 
-// shorter side is at least minSize
+/** 
+ * Shorter side is at least minSize.
+ */ 
 export const getMinSizeDimensions = (
   width: number,
   height: number,
@@ -19,7 +19,7 @@ export const getMinSizeDimensions = (
   };
 }
 
-export const getImageURLFromService = (
+const getImageURLFromService = (
   service: Service,
   width: number,
   height: number,
@@ -54,7 +54,27 @@ export const getImageURLFromService = (
   return `${id}/full/!${width},${height}/${toRotationParam(rotation)}/default.jpg`;
 }
 
-export const getRegionURLFromService = (
+/**
+ * Curried helper to get the image URL with given parameters from 
+ * an image service.
+ */
+export const getImageURL = (
+  width: number | undefined, 
+  height: number | undefined, 
+  service: Service  
+) => (minSize = 800, rotation: Rotation = 0) => {
+  if (!width || !height) return;
+
+  const aspect = width / height;
+  const isPortrait = aspect < 1;
+  
+  const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
+  const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
+
+  return getImageURLFromService(service!, w, h, rotation);
+}
+
+const getRegionURLFromService = (
   service: Service,
   bounds: Bounds,
   rotation: Rotation = 0,
@@ -86,6 +106,20 @@ export const getRegionURLFromService = (
 
   const regionParam = `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
   return `${id}/${regionParam}/!${width},${height}/${toRotationParam(rotation)}/default.jpg`;
+}
+
+/**
+ * Curried helper to get the image region URL with given parameters from 
+ * an image service.
+ */
+export const getRegionURL = (
+  service: Service
+) => (
+  bounds: Bounds,
+  rotation: Rotation = 0,
+  opts: GetRegionURLOpts = { minSize: 400 }
+): string | undefined => {
+  return getRegionURLFromService(service, bounds, rotation, opts);
 }
 
 const normalizeRotation = (rotation: Rotation) => {
