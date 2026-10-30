@@ -1,5 +1,5 @@
 import type { Bounds, CozyImageInfo, Level0ImageInfo, TileSpec } from '../../types';
-import type { Level0Tile } from '../types';
+import type { Tile } from '../types';
 
 export const toURL = (info: CozyImageInfo, region: string, size: string) =>
   `${info.id}/${region}/${size}/0/default.jpg`;
@@ -15,8 +15,8 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 /**
  * All full-image tiles: those listed in `sizes`, plus the full image.
  */
-export const getFullTiles = (info: CozyImageInfo): Level0Tile[] => {
-  const rect: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
+export const getFullTiles = (info: CozyImageInfo): Tile[] => {
+  const region: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
 
   // Level 0 servers must serve the full image, even if `sizes` doesn't list it
   const sizes = info.sizes.some(s => s.width === info.width)
@@ -27,7 +27,7 @@ export const getFullTiles = (info: CozyImageInfo): Level0Tile[] => {
     url: toURL(info, 'full', toSize(info, s.width, s.height)),
     width: s.width,
     height: s.height,
-    rect
+    region
   }));
 }
 
@@ -36,7 +36,7 @@ export const getLevel0TileForScale = (
   tile: TileSpec,
   scaleFactor: number,
   region: Bounds
-): Level0Tile | undefined => {
+): Tile | undefined => {
   // Full-image pixels per tile
   const spanW = tile.width * scaleFactor;
   const spanH = tile.height * scaleFactor;
@@ -61,7 +61,7 @@ export const getLevel0TileForScale = (
       url: toURL(info, 'full', toSize(info, levelW, levelH)),
       width: levelW,
       height: levelH,
-      rect: { x: 0, y: 0, w: info.width, h: info.height },
+      region: { x: 0, y: 0, w: info.width, h: info.height }
     };
   }
 
@@ -84,7 +84,7 @@ export const getLevel0TileForScale = (
     url: toURL(info, regionParam, size),
     width: sizeW,
     height: sizeH,
-    rect: { x, y, w, h },
+    region: { x, y, w, h }
   };
 };
 
@@ -94,16 +94,16 @@ export const getLevel0Tile = (
   info: Level0ImageInfo,
   region: Bounds,
   minWidth: number
-): Level0Tile | undefined => {
+): Tile | undefined => {
   const tileSources = info.tiles.flatMap((tile) =>
     tile.scaleFactors.map(sf => getLevel0TileForScale(info, tile, sf, region))
   );
 
   const candidates = [...getFullTiles(info), ...tileSources]
-    .filter((s): s is Level0Tile => Boolean(s));
+    .filter((s): s is Tile => Boolean(s));
 
   // Output pixels per full-image pixel
-  const resolution = (s: Level0Tile) => s.width / s.rect.w;
+  const resolution = (s: Tile) => s.width / s.region.w;
 
   const required = Math.min(minWidth, region.w) / region.w;
 
@@ -112,7 +112,7 @@ export const getLevel0Tile = (
   if (sufficient.length > 0)
     return sufficient.reduce((a, b) => (b.width * b.height < a.width * a.height ? b : a));
 
-  return candidates.reduce<Level0Tile | undefined>(
+  return candidates.reduce<Tile | undefined>(
     (a, b) => (!a || resolution(b) > resolution(a) ? b : a),
     undefined
   );

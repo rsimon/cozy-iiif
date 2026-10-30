@@ -1,6 +1,6 @@
 import type { Bounds } from '../types';
 
-export interface Level0Tile {
+export interface Tile {
 
   url: string;
 
@@ -8,13 +8,25 @@ export interface Level0Tile {
 
   height: number;
 
-  rect: Bounds;
+  region: Bounds
 
 }
 
-export interface Level0Crop {
+/**
+ * Tiles meant for stitching don't need the IIIF region. Instead they need 
+ * the actual x/y coordinates in the current zoom level.
+ */
+export interface StitchableTile extends Omit<Tile, 'region'> {
 
-  tile: Level0Tile;
+  x: number;
+
+  y: number;
+
+}
+
+export interface Crop {
+
+  tile: Tile;
 
   crop: Bounds;
 
