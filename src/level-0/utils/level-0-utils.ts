@@ -57,12 +57,8 @@ export const getLevel0TileForScale = (
 
   // If the whole image fits into one tile, request the whole img at this level
   if (levelW < tile.width && levelH < tile.height) {
-    const size = isFullSize(levelW, levelH)
-      ? (info.majorVersion === 2 ? 'full' : 'max')
-      : (info.majorVersion === 2 ? `${levelW},` : `${levelW},${levelH}`);
-
     return {
-      url: toURL(info, 'full', size),
+      url: toURL(info, 'full', toSize(info, levelW, levelH)),
       width: levelW,
       height: levelH,
       rect: { x: 0, y: 0, w: info.width, h: info.height },
