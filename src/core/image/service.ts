@@ -14,7 +14,7 @@ export const isImageService = (data: any): data is ImageService => {
   );
 }
 
-export const getProfileLevel = (profile: any) => {
+const getProfileLevel = (profile: any) => {
   const labels = ['level0', 'level1', 'level2'];
   const profiles = Array.isArray(profile) ? profile : profile ? [profile] : [];
   
