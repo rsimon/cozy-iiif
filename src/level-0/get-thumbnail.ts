@@ -1,7 +1,8 @@
 import { getThrottledLoader } from './utils/throttled-loader';
 import type { StitchableTile, Tile } from './types';
 import { getLevel0Tile } from './utils';
-import type { Bounds, Level0ImageInfo, Size } from '../types';
+import type { Bounds, Level0ImageInfo, Level0ImageServiceResource, Size } from '../types';
+import { fetchImageInfo } from '../helpers';
 
 const DEFAULT_MIN_WIDTH = window.devicePixelRatio * 200;
 
@@ -113,7 +114,19 @@ const getThumbnailTiles = (info: Level0ImageInfo, minSize?: Partial<Size>): Stit
   return tiles;
 }
 
-export const renderThumbnail = async (info: Level0ImageInfo, minSize?: Partial<Size>): Promise<Blob> => {
+export const renderThumbnail = async (
+  source: Level0ImageInfo | Level0ImageServiceResource,
+  minSize?: Partial<Size>
+): Promise<Blob> => {
+  const info = 'tiles' in source
+    ? source : await fetchImageInfo(source.serviceUrl);
+  
+  if (!info)
+    throw new Error(`Error fetching info.json: ${source.serviceUrl}`);
+
+  if (info.type !== 'level0')
+    throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
+
   const tiles = getThumbnailTiles(info, minSize);
   const dimensions = getThumbnailDimensions(info, minSize);
   

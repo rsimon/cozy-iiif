@@ -3,8 +3,10 @@ import { getFullTiles, getLevel0Tile, getThrottledLoader, toURL } from './utils'
 import type {
   Bounds,
   Level0ImageInfo,
+  Level0ImageServiceResource,
   TileSpec
 } from '../types';
+import { fetchImageInfo } from '../helpers';
 
 const clampRegion = (info: Level0ImageInfo, region: Bounds): Bounds => {
   const x = Math.min(Math.max(0, region.x), info.width - 1);
@@ -12,63 +14,6 @@ const clampRegion = (info: Level0ImageInfo, region: Bounds): Bounds => {
   const w = Math.max(1, Math.min(region.w, info.width - x));
   const h = Math.max(1, Math.min(region.h, info.height - y));
   return { x, y, w, h };
-}
-
-/**
- * The tile at grid position (col, row) for the given scale factor.
- */
-const getTileAt = (
-  info: Level0ImageInfo,
-  tile: TileSpec,
-  scaleFactor: number,
-  col: number,
-  row: number
-): Tile => {
-  // Full-image pixels per tile
-  const spanW = tile.width * scaleFactor;
-  const spanH = tile.height * scaleFactor;
-
-  const levelW = Math.ceil(info.width / scaleFactor);
-  const levelH = Math.ceil(info.height / scaleFactor);
-
-  const isFullSize = (w: number, h: number) =>
-    info.majorVersion === 2 ? w === info.width : w === info.width && h === info.height;
-
-  // If the whole image fits into one tile, request the whole img at this level
-  if (levelW < tile.width && levelH < tile.height) {
-    const size = isFullSize(levelW, levelH)
-      ? (info.majorVersion === 2 ? 'full' : 'max')
-      : (info.majorVersion === 2 ? `${levelW},` : `${levelW},${levelH}`);
-
-    return {
-      url: toURL(info, 'full', size),
-      width: levelW,
-      height: levelH,
-      region: { x: 0, y: 0, w: info.width, h: info.height }
-    }
-  }
-
-  const x = col * spanW;
-  const y = row * spanH;
-  const w = Math.min(spanW, info.width - x);
-  const h = Math.min(spanH, info.height - y);
-
-  const sizeW = Math.min(tile.width, levelW - col * tile.width);
-  const sizeH = Math.min(tile.height, levelH - row * tile.height);
-
-  const regionParam = x === 0 && y === 0 && w === info.width && h === info.height
-    ? 'full' : `${x},${y},${w},${h}`;
-
-  const size = isFullSize(sizeW, sizeH)
-    ? (info.majorVersion === 2 ? 'full' : 'max')
-    : (info.majorVersion === 2 ? `${sizeW},` : `${sizeW},${sizeH}`);
-
-  return {
-    url: toURL(info, regionParam, size),
-    width: sizeW,
-    height: sizeH,
-    region: { x, y, w, h }
-  };
 }
 
 /**
@@ -99,64 +44,11 @@ export const getLevel0Crop = (
   };
 }
 
-/**
- * Candidates for stitching: every full-image tile on its own, plus, for each
- * scale factor, all tiles of that grid that overlap the region.
- */
-const getTileGroups = (info: Level0ImageInfo, region: Bounds): Tile[][] => {
-  const fullTiles = getFullTiles(info).map(t => [t]);
-
-  const grids = info.tiles.flatMap(tile =>
-    tile.scaleFactors.map(sf => {
-      const spanW = tile.width * sf;
-      const spanH = tile.height * sf;
-
-      const startCol = Math.floor(region.x / spanW);
-      const startRow = Math.floor(region.y / spanH);
-      const endCol = Math.floor((region.x + region.w - 1) / spanW);
-      const endRow = Math.floor((region.y + region.h - 1) / spanH);
-
-      const group: Tile[] = [];
-
-      for (let row = startRow; row <= endRow; row++) {
-        for (let col = startCol; col <= endCol; col++) {
-          group.push(getTileAt(info, tile, sf, col, row));
-        }
-      }
-
-      return group;
-    })
-  );
-
-  return [...fullTiles, ...grids];
-}
-
-// Output pixels per full-image pixel
-const groupResolution = (g: Tile[]) => g[0].width / g[0].region.w;
-
-const groupSize = (g: Tile[]) => g.reduce((sum, t) => sum + t.width * t.height, 0);
-
-/**
- * The smallest set of tiles that, stitched together, shows the region at least minWidth pixels.
- */
-const getBestTileGroup = (
-  info: Level0ImageInfo,
-  region: Bounds,
-  minWidth: number
-): Tile[] | undefined => {
-  const groups = getTileGroups(info, region).filter(g => g.length > 0);
-
-  const required = Math.min(minWidth, region.w) / region.w;
-
-  const sufficient = groups.filter(g => groupResolution(g) >= required);
-
-  if (sufficient.length > 0)
-    return sufficient.reduce((a, b) => (groupSize(b) < groupSize(a) ? b : a));
-
-  return groups.reduce<Tile[] | undefined>(
-    (a, b) => (!a || groupResolution(b) > groupResolution(a) ? b : a),
-    undefined
-  );
+const getTileUrl = (info: Level0ImageInfo, bounds: Bounds): string => {
+  const { x, y, w, h } = bounds;
+  const tileWidth = info.tiles[0].width;
+  const tileHeight = info.tiles[0].height|| info.tiles[0].width;
+  return `${info.id}/${x * tileWidth},${y * tileHeight},${w},${h}/${tileWidth},/0/default.jpg`;
 }
 
 const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTile[] => {
@@ -169,13 +61,6 @@ const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTil
   const startTileY = Math.floor(bounds.y / tileHeight);
   const endTileX = Math.ceil((bounds.x + bounds.w) / tileWidth);
   const endTileY = Math.ceil((bounds.y + bounds.h) / tileHeight);
-
-  const getTileUrl = (bounds: Bounds): string => {
-    const { x, y, w, h } = bounds;
-    const tileWidth = info.tiles[0].width;
-    const tileHeight = info.tiles[0].height|| info.tiles[0].width;
-    return `${info.id}/${x * tileWidth},${y * tileHeight},${w},${h}/${tileWidth},/0/default.jpg`;
-  }
 
   const tiles: StitchableTile[] = [];
   
@@ -195,7 +80,7 @@ const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTil
         y,
         width: effectiveWidth,
         height: effectiveHeight,
-        url: getTileUrl({ x, y, w: effectiveWidth, h: effectiveHeight })
+        url: getTileUrl(info, { x, y, w: effectiveWidth, h: effectiveHeight })
       });
     }
   }
@@ -207,7 +92,19 @@ const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTil
  * Canvas variant: renders the region as an actual image, stitching tiles if needed.
  * `minWidth` defaults to the region's native width.
  */
-export const cropRegion = async (info: Level0ImageInfo, bounds: Bounds): Promise<Blob> => {
+export const cropRegion = async (
+  source: Level0ImageInfo | Level0ImageServiceResource, 
+  bounds: Bounds
+): Promise<Blob> => {
+  const info = 'tiles' in source
+    ? source : await fetchImageInfo(source.serviceUrl);
+
+  if (!info)
+    throw new Error(`Error fetching info.json: ${source.serviceUrl}`);
+
+  if (info.type !== 'level0')
+    throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
+
   const tiles = getTilesForRegion(info, bounds);
   
   const canvas = document.createElement('canvas');
