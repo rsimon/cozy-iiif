@@ -1,4 +1,3 @@
-import type { ImageInfo } from '../../level-0/types';
 import type { CozyImageInfo, DynamicImageInfo, Level0ImageInfo } from '../../types';
 import { getPropertyValue } from '../resource';
 import { parseImageService } from './service';
@@ -39,7 +38,7 @@ export const parseImageInfo = (resource: any): CozyImageInfo => {
     serviceUrl,
     source: resource,
     getImageURL: getImageURL(width, height, resource)
-  } as ImageInfo;
+  } as CozyImageInfo;
 
   if (service.profileLevel === 0) {
     return image as Level0ImageInfo;

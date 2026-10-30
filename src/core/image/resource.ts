@@ -1,4 +1,4 @@
-import type { IIIFExternalWebResource, Service, SpecificResource } from '@iiif/presentation-3';
+import type { IIIFExternalWebResource, SpecificResource } from '@iiif/presentation-3';
 import type { Size } from '../../types';
 import { getPropertyValue } from '../resource';
 import { parseRegion } from '../selector';

@@ -1,37 +1,33 @@
-export interface ImageInfo {
-
-  id: string;
-  
-  width: number;
-  
-  height: number;
-  
-  tiles: TileInfo[];
-
-}
-
-export type Size = { width: number; height: number; };
-
-export interface TileInfo {
-
-  width: number;
-
-  height?: number;
-
-  scaleFactors: number[];
-
-}
+import type { Bounds } from '../types';
 
 export interface Tile {
+
+  url: string;
+
+  width: number;
+
+  height: number;
+
+  region: Bounds
+
+}
+
+/**
+ * Tiles meant for stitching don't need the IIIF region. Instead they need 
+ * the actual x/y coordinates in the current zoom level.
+ */
+export interface StitchableTile extends Omit<Tile, 'region'> {
 
   x: number;
 
   y: number;
 
-  width: number;
+}
 
-  height: number;
+export interface Crop {
 
-  url: string;
+  tile: Tile;
+
+  crop: Bounds;
 
 }

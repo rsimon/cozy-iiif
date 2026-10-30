@@ -61,7 +61,3 @@ export const parseImageService = (service: Service) => {
   return { majorVersion: 3, profileLevel };
 }
 
-// export const getProfileLevel = (service: Service): 0 | 1 | 2 | undefined; 
-// export const isLevel0 = (service: Service): boolean;
-
-

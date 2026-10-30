@@ -37,7 +37,7 @@ export interface Size {
 
 }
 
-interface TileSpec extends Size {
+export interface TileSpec extends Size {
 
   scaleFactors: number[];
   

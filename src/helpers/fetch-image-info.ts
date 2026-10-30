@@ -6,7 +6,7 @@ const infoCache = new Map<string, Promise<CozyImageInfo | undefined>>();
 /**
  * Simple helper with built-in caching.
  */
-export const fetchImageInfoWithCaching = (url: string) => {
+export const fetchImageInfo = (url: string) => {
   if (!infoCache.has(url))
     infoCache.set(url, fetch(url)
       .then((res) => res.json())
