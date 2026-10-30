@@ -1,6 +1,7 @@
 import type { Service } from "@iiif/presentation-3";
 import type { Bounds, CozyImageResource, GetRegionURLOpts, Rotation } from "../../types";
 import { getPropertyValue } from "../resource";
+import { getProfileLevel } from "./service";
 
 /** 
  * Shorter side is at least minSize.
@@ -42,9 +43,11 @@ const getImageURLFromService = (
       const suitableSize = service.sizes
         .sort((a, b) => (b.width * b.height) - (a.width * a.height))
         .filter(s => (s.width * s.height) >= width * height)[0];
+
+      const isV2 = getProfileLevel(service.profile) === 2;
         
       if (suitableSize)
-        return `${id}/full/${suitableSize.width},${suitableSize.height}/0/default.jpg`;
+        return `${id}/full/${suitableSize.width},${isV2 ? '' : suitableSize.height}/0/default.jpg`;
     }
 
     // Fallback: full image
