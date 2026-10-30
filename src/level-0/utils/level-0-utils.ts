@@ -13,17 +13,13 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 }
 
 /**
- * All full-image tiles: those listed in `sizes`, plus the full image.
+ * All full-image tiles listed in `sizes`
  */
 export const getFullTiles = (info: CozyImageInfo): Tile[] => {
   const region: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
 
-  // Level 0 servers must serve the full image, even if `sizes` doesn't list it
-  const sizes = info.sizes.some(s => s.width === info.width)
-    ? info.sizes
-    : [...info.sizes, { width: info.width, height: info.height }];
-
-  return sizes.map(s => ({
+  // Only use the explicitly listed sizes, without forcing the raw full image
+  return info.sizes.map(s => ({
     url: toURL(info, 'full', toSize(info, s.width, s.height)),
     width: s.width,
     height: s.height,
@@ -102,9 +98,7 @@ export const getLevel0Tile = (
   const candidates = [...getFullTiles(info), ...tileSources]
     .filter((s): s is Tile => Boolean(s));
 
-  // Output pixels per full-image pixel
   const resolution = (s: Tile) => s.width / s.region.w;
-
   const required = Math.min(minWidth, region.w) / region.w;
 
   const sufficient = candidates.filter((s) => resolution(s) >= required);
@@ -112,8 +106,21 @@ export const getLevel0Tile = (
   if (sufficient.length > 0)
     return sufficient.reduce((a, b) => (b.width * b.height < a.width * a.height ? b : a));
 
-  return candidates.reduce<Tile | undefined>(
+  // Fallback: if nothing is sufficient, pick the highest resolution available
+  const bestCandidate = candidates.reduce<Tile | undefined>(
     (a, b) => (!a || resolution(b) > resolution(a) ? b : a),
     undefined
   );
+
+  if (bestCandidate) return bestCandidate;
+
+  // Final fallback: no best candidate - full image
+  const isV2 = info.majorVersion === 2;
+  
+  return {
+    url: toURL(info, 'full', isV2 ? 'full' : 'max'),
+    width: info.width,
+    height: info.height,
+    region: { x: 0, y: 0, w: info.width, h: info.height }
+  };
 }
