@@ -19,7 +19,7 @@ interface BaseImageInfo {
 
   readonly tiles: TileSpec[];
 
-  readonly sizes: Size[];
+  readonly sizes: TileSize[];
 
   readonly serviceUrl: string;
 
@@ -29,7 +29,7 @@ interface BaseImageInfo {
 
 }
 
-export interface Size {
+export interface TileSize {
 
   width: number;
 
@@ -37,7 +37,7 @@ export interface Size {
 
 }
 
-export interface TileSpec extends Size {
+export interface TileSpec extends TileSize {
 
   scaleFactors: number[];
   

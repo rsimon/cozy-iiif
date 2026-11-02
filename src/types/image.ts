@@ -1,5 +1,4 @@
 import type { IIIFExternalWebResource, Service } from '@iiif/presentation-3';
-import type { Size } from './info';
 
 export type CozyImageResource = 
   | StaticImageResource 
@@ -92,7 +91,7 @@ export interface Bounds {
 
 }
 
-export interface ImageURLSize {
+export interface Size {
 
   w: number;
 
@@ -102,7 +101,7 @@ export interface ImageURLSize {
 
 export interface GetImageURLOpts {
 
-  size: 'full' | number | ImageURLSize;
+  size: 'full' | number | Size;
 
   fit?: 'cover' | 'contain';
 

@@ -4,8 +4,8 @@ import { parseImageService } from './service';
 import type {
   Bounds,
   GetImageURLOpts,
-  ImageURLSize,
-  Rotation
+  Rotation,
+  Size
 } from '../../types';
 
 /** 
@@ -28,7 +28,7 @@ export const getMinSizeDimensions = (
 const getImageURLFromService = (
   service: Service,
   region: string,
-  size: 'full' | ImageURLSize,
+  size: 'full' | Size,
   sourceBounds: Bounds,
   rotation: Rotation = 0
 ): string | undefined => {
@@ -71,7 +71,7 @@ const getImageURLFromService = (
   return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
 }
 
-const getTargetSize = (size: GetImageURLOpts['size']): ImageURLSize | 'full' => {
+const getTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
   if (size === 'full') return size;
 
   const target = typeof size === 'number' ? { w: size, h: size } : size;
@@ -82,7 +82,7 @@ const getTargetSize = (size: GetImageURLOpts['size']): ImageURLSize | 'full' => 
   return target;
 }
 
-const getCoverBounds = (bounds: Bounds, target: ImageURLSize): Bounds => {
+const getCoverBounds = (bounds: Bounds, target: Size): Bounds => {
   const targetAspect = target.w / target.h;
   const sourceAspect = bounds.w / bounds.h;
 
@@ -95,7 +95,7 @@ const getCoverBounds = (bounds: Bounds, target: ImageURLSize): Bounds => {
   return { ...bounds, y: bounds.y + (bounds.h - h) / 2, h };
 }
 
-const getConstrainedSizeParam = (bounds: Bounds, target: ImageURLSize): string => {
+const getConstrainedSizeParam = (bounds: Bounds, target: Size): string => {
   const widthScale = target.w / bounds.w;
   const heightScale = target.h / bounds.h;
   const scale = Math.min(widthScale, heightScale, 1);
