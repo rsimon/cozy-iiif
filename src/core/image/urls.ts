@@ -54,12 +54,29 @@ const getImageURLFromService = (
 
   const sizeParam = size === 'full'
     ? fullSizeParam
-    : getConstrainedSizeParam(sourceBounds, size, fullSizeParam);
+    : getIIIFSizeParam(sourceBounds, size, fullSizeParam);
 
   return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
 }
 
-const getTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
+// Computes `w,` or `,h` (or `full/max`) depending on which is the constraing dimension
+const getIIIFSizeParam = (
+  bounds: Bounds,
+  target: Size,
+  fullSizeParam: 'full' | 'max'
+): string => {
+  const widthScale = target.w / bounds.w;
+  const heightScale = target.h / bounds.h;
+  const scale = Math.min(widthScale, heightScale, 1);
+
+  if (scale === 1) return fullSizeParam;
+  
+  return (widthScale <= heightScale) 
+    ? `${Math.max(1, Math.floor(bounds.w * scale))},`
+    : `,${Math.max(1, Math.floor(bounds.h * scale))}`;
+}
+
+const normalizeTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
   if (size === 'full') return size;
 
   const target = typeof size === 'number' ? { w: size, h: size } : size;
@@ -70,6 +87,7 @@ const getTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
   return target;
 }
 
+// Computes center-crop bounds for 'cover' fit mode
 const getCoverBounds = (bounds: Bounds, target: Size): Bounds => {
   const targetAspect = target.w / target.h;
   const sourceAspect = bounds.w / bounds.h;
@@ -81,20 +99,6 @@ const getCoverBounds = (bounds: Bounds, target: Size): Bounds => {
 
   const h = bounds.w / targetAspect;
   return { ...bounds, y: bounds.y + (bounds.h - h) / 2, h };
-}
-
-const getConstrainedSizeParam = (
-  bounds: Bounds,
-  target: Size,
-  fullSizeParam: 'full' | 'max'
-): string => {
-  const widthScale = target.w / bounds.w;
-  const heightScale = target.h / bounds.h;
-  const scale = Math.min(widthScale, heightScale, 1);
-
-  if (scale === 1) return fullSizeParam;
-  if (widthScale <= heightScale) return `${Math.max(1, Math.floor(bounds.w * scale))},`;
-  return `,${Math.max(1, Math.floor(bounds.h * scale))}`;
 }
 
 const toRegionParam = ({ x, y, w, h }: Bounds): string =>
@@ -111,7 +115,7 @@ export const getImageURL = (
 ) => (opts: GetImageURLOpts = { size: 400 }) => {
   if (!width || !height) return;
 
-  const size = getTargetSize(opts.size);
+  const size = normalizeTargetSize(opts.size);
   if (size === 'full') {
     return getImageURLFromService(service, 'full', size, { x: 0, y: 0, w: width, h: height }, opts.rotation);
   }
@@ -135,7 +139,7 @@ const getRegionURLFromService = (
     return;
   }
 
-  const size = getTargetSize(opts.size);
+  const size = normalizeTargetSize(opts.size);
   const regionBounds = size !== 'full' && opts.fit === 'cover'
     ? getCoverBounds(bounds, size)
     : bounds;
