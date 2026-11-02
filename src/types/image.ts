@@ -64,7 +64,6 @@ export interface Level0ImageServiceResource extends BaseImageResource {
 
 }
 
-
 export interface ImageRequestOptions {
 
   readonly width?: number;
