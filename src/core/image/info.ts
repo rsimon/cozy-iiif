@@ -45,7 +45,7 @@ export const parseImageInfo = (resource: any): CozyImageInfo => {
   } else {
     return {
       ...image,
-      getRegionURL: getRegionURL(resource)
+      getRegionURL: getRegionURL(resource, width, height)
     } as DynamicImageInfo;
   }
 }
