@@ -1,12 +1,12 @@
-import type { Service } from "@iiif/presentation-3";
+import type { Service } from '@iiif/presentation-3';
+import { getPropertyValue } from '../resource';
+import { parseImageService } from './service';
 import type {
   Bounds,
   GetImageURLOpts,
   ImageURLSize,
   Rotation
-} from "../../types";
-import { getPropertyValue } from "../resource";
-import { parseImageService } from "./service";
+} from '../../types';
 
 /** 
  * Shorter side is at least minSize.
