@@ -1,5 +1,5 @@
 import type { Bounds, CozyImageInfo, Level0ImageInfo, TileSpec } from '../../types';
-import type { Tile } from '../types';
+import type { StitchableTile, Tile } from '../types';
 
 export const toURL = (info: CozyImageInfo, region: string, size: string) =>
   `${info.id}/${region}/${size}/0/default.jpg`;
@@ -25,6 +25,53 @@ export const getFullTiles = (info: CozyImageInfo): Tile[] => {
     height: s.height,
     region
   }));
+}
+
+export const getLevel0TilesForRegion = (
+  info: Level0ImageInfo,
+  bounds: Bounds,
+  scaleFactor: number
+): StitchableTile[] => {
+  const tileWidth = info.tiles[0]?.width;
+  const tileHeight = info.tiles[0]?.height || tileWidth;
+  if (!tileWidth || !tileHeight || !Number.isFinite(scaleFactor) || scaleFactor <= 0) {
+    throw new Error(`Invalid tile specification for Level 0 image ${info.id}`);
+  }
+
+  const spanW = tileWidth * scaleFactor;
+  const spanH = tileHeight * scaleFactor;
+  const startTileX = Math.floor(bounds.x / spanW);
+  const startTileY = Math.floor(bounds.y / spanH);
+  const endTileX = Math.ceil((bounds.x + bounds.w) / spanW);
+  const endTileY = Math.ceil((bounds.y + bounds.h) / spanH);
+  const tiles: StitchableTile[] = [];
+
+  for (let y = startTileY; y < endTileY; y++) {
+    for (let x = startTileX; x < endTileX; x++) {
+      const sourceX = x * spanW;
+      const sourceY = y * spanH;
+      if (sourceX >= info.width || sourceY >= info.height) continue;
+
+      const width = Math.min(tileWidth, Math.ceil((info.width - sourceX) / scaleFactor));
+      const height = Math.min(tileHeight, Math.ceil((info.height - sourceY) / scaleFactor));
+      const sourceWidth = Math.min(spanW, info.width - sourceX);
+      const sourceHeight = Math.min(spanH, info.height - sourceY);
+
+      tiles.push({
+        x: x * tileWidth,
+        y: y * tileHeight,
+        width,
+        height,
+        url: toURL(
+          info,
+          `${sourceX},${sourceY},${sourceWidth},${sourceHeight}`,
+          `${width},`
+        )
+      });
+    }
+  }
+
+  return tiles;
 }
 
 export const getLevel0TileForScale = (

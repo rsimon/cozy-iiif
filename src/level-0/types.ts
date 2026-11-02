@@ -1,5 +1,17 @@
 import type { Bounds } from '../types';
 
+export interface Level0Size {
+
+  w: number;
+
+  h: number;
+
+}
+
+export type GetLevel0ImageOpts =
+  | { size: 'full' }
+  | { size: number | Level0Size; fit?: 'cover' | 'contain' };
+
 export interface Tile {
 
   url: string;

@@ -1,12 +1,18 @@
-import type { Crop, StitchableTile } from './types';
 import { getLevel0Tile, getThrottledLoader } from './utils';
+import { getLevel0TilesForRegion } from './utils/level-0-utils';
 import { clampRegion } from '../core/image/urls';
+import {
+  getLevel0OutputSize,
+  getLevel0Region,
+  getLevel0ScaleFactor
+} from './sizing';
 import { fetchImageInfo } from '../helpers';
 import type {
   Bounds,
   Level0ImageInfo,
   Level0ImageServiceResource
 } from '../types';
+import type { Crop, GetLevel0ImageOpts } from './types';
 
 /**
  * CSS variant: the best single image for the region, plus the crop rectangle
@@ -15,12 +21,14 @@ import type {
 export const cropRegionFromTile = (
   info: Level0ImageInfo,
   bounds: Bounds,
-  minWidth?: number
-): Crop | undefined => {
-  const region = clampRegion(bounds, { w: info.width, h: info.height });
+  opts: GetLevel0ImageOpts = { size: 'full' }
+): Crop => {
+  const clampedBounds = clampRegion(bounds, { w: info.width, h: info.height });
+  const region = getLevel0Region(clampedBounds, opts);
+  const outputSize = getLevel0OutputSize(region, opts);
 
-  const tile = getLevel0Tile(info, region, minWidth ?? region.w);
-  if (!tile) return undefined;
+  const tile = getLevel0Tile(info, region, outputSize.w);
+  if (!tile) throw new Error(`No usable tile found for Level 0 image ${info.id}`);
 
   const sx = tile.width / tile.region.w;
   const sy = tile.height / tile.region.h;
@@ -36,57 +44,14 @@ export const cropRegionFromTile = (
   };
 }
 
-const getTileUrl = (info: Level0ImageInfo, bounds: Bounds): string => {
-  const { x, y, w, h } = bounds;
-  const tileWidth = info.tiles[0].width;
-  const tileHeight = info.tiles[0].height|| info.tiles[0].width;
-  return `${info.id}/${x * tileWidth},${y * tileHeight},${w},${h}/${tileWidth},/0/default.jpg`;
-}
-
-const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTile[] => {
-  const tileWidth = info.tiles[0].width;
-  const tileHeight = info.tiles[0].height || info.tiles[0].width; // fallback for square tiles
-  const maxWidth = info.width;
-  const maxHeight = info.height;
-
-  const startTileX = Math.floor(bounds.x / tileWidth);
-  const startTileY = Math.floor(bounds.y / tileHeight);
-  const endTileX = Math.ceil((bounds.x + bounds.w) / tileWidth);
-  const endTileY = Math.ceil((bounds.y + bounds.h) / tileHeight);
-
-  const tiles: StitchableTile[] = [];
-  
-  for (let y = startTileY; y < endTileY; y++) {
-    for (let x = startTileX; x < endTileX; x++) {
-      // Skip tiles outside image bounds
-      if (x * tileWidth >= maxWidth || y * tileHeight >= maxHeight) {
-        continue;
-      }
-
-      // Calculate actual tile dimensions (might be smaller at edges)
-      const effectiveWidth = Math.min(tileWidth, maxWidth - (x * tileWidth));
-      const effectiveHeight = Math.min(tileHeight, maxHeight - (y * tileHeight));
-
-      tiles.push({
-        x,
-        y,
-        width: effectiveWidth,
-        height: effectiveHeight,
-        url: getTileUrl(info, { x, y, w: effectiveWidth, h: effectiveHeight })
-      });
-    }
-  }
-
-  return tiles;
-}
-
 /**
- * Canvas variant: renders the region as an actual image, stitching tiles if needed.
- * `minWidth` defaults to the region's native width.
+ * Canvas variant: renders a region at the requested size, stitching tiles if needed.
+ * Defaults to native resolution without upscaling.
  */
 export const cropStitchedRegion = async (
   source: Level0ImageInfo | Level0ImageServiceResource, 
-  bounds: Bounds
+  bounds: Bounds,
+  opts: GetLevel0ImageOpts = { size: 'full' }
 ): Promise<Blob> => {
   const info = 'tiles' in source
     ? source : await fetchImageInfo(source.serviceUrl);
@@ -97,8 +62,12 @@ export const cropStitchedRegion = async (
   if (info.type !== 'level0')
     throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
 
-  const region = clampRegion(bounds, { w: info.width, h: info.height });
-  const tiles = getTilesForRegion(info, region);
+  const clampedBounds = clampRegion(bounds, { w: info.width, h: info.height });
+  const region = getLevel0Region(clampedBounds, opts);
+  const desiredSize = getLevel0OutputSize(region, opts);
+  const scaleFactor = getLevel0ScaleFactor(info, region, desiredSize);
+  const outputSize = getLevel0OutputSize(region, opts, 1 / scaleFactor);
+  const tiles = getLevel0TilesForRegion(info, region, scaleFactor);
   
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -107,11 +76,8 @@ export const cropStitchedRegion = async (
     // Should never happen
     throw new Error('Error initializing canvas context');
   
-  const tileWidth = info.tiles[0].width;
-  const tileHeight = info.tiles[0].height || info.tiles[0].width;
-
-  const tilesWidth = (Math.ceil(region.w / tileWidth) + 1) * tileWidth;
-  const tilesHeight = (Math.ceil(region.h / tileHeight) + 1) * tileHeight;
+  const tilesWidth = Math.ceil(region.w / scaleFactor);
+  const tilesHeight = Math.ceil(region.h / scaleFactor);
 
   canvas.width = tilesWidth;
   canvas.height = tilesHeight;
@@ -121,14 +87,14 @@ export const cropStitchedRegion = async (
   // TODO implement polite harvesting!
   await Promise.all(tiles.map(async (tile) => {
     const img = await loader.loadImage(tile.url);
-    const x = (tile.x * tileWidth) - region.x;
-    const y = (tile.y * tileHeight) - region.y;
+    const x = tile.x - (region.x / scaleFactor);
+    const y = tile.y - (region.y / scaleFactor);
     ctx.drawImage(img, x, y);
   }));
 
   const cropCanvas = document.createElement('canvas');
-  cropCanvas.width = region.w;
-  cropCanvas.height = region.h;
+  cropCanvas.width = outputSize.w;
+  cropCanvas.height = outputSize.h;
 
   const cropCtx = cropCanvas.getContext('2d');
   
@@ -136,9 +102,9 @@ export const cropStitchedRegion = async (
     throw new Error('Error initializing canvas context');
 
   // Copy cropped region
-  cropCtx.drawImage(canvas, 
-    0, 0, region.w, region.h,
-    0, 0, region.w, region.h
+  cropCtx.drawImage(canvas,
+    0, 0, region.w / scaleFactor, region.h / scaleFactor,
+    0, 0, outputSize.w, outputSize.h
   );
 
   return new Promise((resolve, reject) => {
