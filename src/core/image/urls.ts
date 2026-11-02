@@ -35,8 +35,10 @@ const getImageURLFromService = (
   const id = getPropertyValue(service, 'id');
 
   const { majorVersion, profileLevel } = parseImageService(service);
+
   const isLevel0 = profileLevel === 0;
-  const fullSizeParam = getFullSizeParam(majorVersion);
+
+  const fullSizeParam = majorVersion === 2 ? 'full' : 'max';
   
   if (isLevel0) {
     const { degrees, mirrored } = normalizeRotation(rotation);
@@ -72,12 +74,6 @@ const getImageURLFromService = (
     ? fullSizeParam
     : getConstrainedSizeParam(sourceBounds, size, fullSizeParam);
   return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
-}
-
-const getFullSizeParam = (majorVersion: number): 'full' | 'max' => {
-  if (majorVersion === 2) return 'full';
-  if (majorVersion === 3) return 'max';
-  throw new RangeError(`Unsupported IIIF Image API version: ${majorVersion}`);
 }
 
 const getTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
