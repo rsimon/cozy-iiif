@@ -8,6 +8,32 @@ import type {
   Size
 } from '../../types';
 
+const normalizeTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
+  if (size === 'full') return size;
+
+  const target = typeof size === 'number' ? { w: size, h: size } : size;
+  if (!Number.isFinite(target.w) || !Number.isFinite(target.h) || target.w <= 0 || target.h <= 0) {
+    throw new RangeError('Image URL size dimensions must be finite positive numbers');
+  }
+
+  return target;
+}
+
+const normalizeRotation = (rotation: Rotation) => {
+  const opts = typeof rotation === 'number'
+    ? { degrees: rotation } : rotation;
+
+  return {
+    degrees: ((opts.degrees % 360) + 360) % 360,
+    mirrored: opts.mirrored
+  }
+}
+
+const toRotationParam = (rotation: Rotation): string => {
+  const { degrees, mirrored } = normalizeRotation(rotation);
+  return mirrored ? `!${((-degrees % 360) + 360) % 360}` : `${degrees}`;
+}
+
 const getImageURLFromService = (
   service: Service,
   region: string,
@@ -76,17 +102,6 @@ const getIIIFSizeParam = (
     : `,${Math.max(1, Math.floor(bounds.h * scale))}`;
 }
 
-const normalizeTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
-  if (size === 'full') return size;
-
-  const target = typeof size === 'number' ? { w: size, h: size } : size;
-  if (!Number.isFinite(target.w) || !Number.isFinite(target.h) || target.w <= 0 || target.h <= 0) {
-    throw new RangeError('Image URL size dimensions must be finite positive numbers');
-  }
-
-  return target;
-}
-
 // Computes center-crop bounds for 'cover' fit mode
 const getCoverBounds = (bounds: Bounds, target: Size): Bounds => {
   const targetAspect = target.w / target.h;
@@ -116,9 +131,8 @@ export const getImageURL = (
   if (!width || !height) return;
 
   const size = normalizeTargetSize(opts.size);
-  if (size === 'full') {
+  if (size === 'full')
     return getImageURLFromService(service, 'full', size, { x: 0, y: 0, w: width, h: height }, opts.rotation);
-  }
 
   const bounds = { x: 0, y: 0, w: width, h: height };
   const requestBounds = opts.fit === 'cover' ? getCoverBounds(bounds, size) : bounds;
@@ -158,19 +172,4 @@ export const getRegionURL = (
   opts: GetImageURLOpts = { size: 400 }
 ): string | undefined => {
   return getRegionURLFromService(service, bounds, opts);
-}
-
-const normalizeRotation = (rotation: Rotation) => {
-  const opts = typeof rotation === 'number'
-    ? { degrees: rotation } : rotation;
-
-  return {
-    degrees: ((opts.degrees % 360) + 360) % 360,
-    mirrored: opts.mirrored
-  }
-}
-
-const toRotationParam = (rotation: Rotation): string => {
-  const { degrees, mirrored } = normalizeRotation(rotation);
-  return mirrored ? `!${((-degrees % 360) + 360) % 360}` : `${degrees}`;
 }
