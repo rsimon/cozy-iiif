@@ -140,8 +140,13 @@ export const getImageURL = (
   return getImageURLFromService(service, region, size, requestBounds, opts.rotation);
 }
 
-const getRegionURLFromService = (
-  service: Service,
+/**
+ * Curried helper to get the image region URL with given parameters from
+ * an image service.
+ */
+export const getRegionURL = (
+  service: Service
+) => (
   bounds: Bounds,
   opts: GetImageURLOpts = { size: 400 }
 ): string | undefined => {
@@ -159,17 +164,4 @@ const getRegionURLFromService = (
     : bounds;
   const regionParam = toRegionParam(regionBounds);
   return getImageURLFromService(service, regionParam, size, regionBounds, opts.rotation);
-}
-
-/**
- * Curried helper to get the image region URL with given parameters from 
- * an image service.
- */
-export const getRegionURL = (
-  service: Service
-) => (
-  bounds: Bounds,
-  opts: GetImageURLOpts = { size: 400 }
-): string | undefined => {
-  return getRegionURLFromService(service, bounds, opts);
 }
