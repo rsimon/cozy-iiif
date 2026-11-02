@@ -1,13 +1,13 @@
 import { getThrottledLoader } from './utils/throttled-loader';
 import type { StitchableTile, Tile } from './types';
 import { getLevel0Tile } from './utils';
-import type { Bounds, Level0ImageInfo, Level0ImageServiceResource, Size } from '../types';
+import type { Bounds, Level0ImageInfo, Level0ImageServiceResource, TileSize } from '../types';
 import { fetchImageInfo } from '../helpers';
 
 const DEFAULT_MIN_WIDTH = 400;
 
 /** Translates a min width and/or min height into a min width. Never exceeds the full image. */
-const getMinWidth = (info: Level0ImageInfo, minSize?: Partial<Size>) => {
+const getMinWidth = (info: Level0ImageInfo, minSize?: Partial<TileSize>) => {
   const { width, height } = minSize || {};
 
   if (!width && !height)
@@ -21,7 +21,7 @@ const getMinWidth = (info: Level0ImageInfo, minSize?: Partial<Size>) => {
  * The best Level 0 image for the whole picture at (at least) the given size.
  * Use the URL directly, and let CSS scale it down to the exact size.
  */
-export const getThumbnailTile = (info: Level0ImageInfo, minSize?: Partial<Size>): Tile => {
+export const getThumbnailTile = (info: Level0ImageInfo, minSize?: Partial<TileSize>): Tile => {
   const fullRegion: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
 
   const tile = getLevel0Tile(info, fullRegion, getMinWidth(info, minSize));
@@ -33,7 +33,7 @@ export const getThumbnailTile = (info: Level0ImageInfo, minSize?: Partial<Size>)
 }
 
 // Best-matching scale factor for the given min size
-const getBestScaleFactor = (info: Level0ImageInfo, minSize?: Partial<Size>): number => {
+const getBestScaleFactor = (info: Level0ImageInfo, minSize?: Partial<TileSize>): number => {
   // Sort descending
   const scaleFactors = info.tiles[0].scaleFactors.sort((a, b) => b - a); 
   
@@ -56,7 +56,7 @@ const getBestScaleFactor = (info: Level0ImageInfo, minSize?: Partial<Size>): num
   return scaleFactors[scaleFactors.length - 1];
 }
 
-const getThumbnailDimensions = (info: Level0ImageInfo, minSize?: Partial<Size>): Size => {
+const getThumbnailDimensions = (info: Level0ImageInfo, minSize?: Partial<TileSize>): TileSize => {
   const scaleFactor = getBestScaleFactor(info, minSize);
 
   let width = Math.ceil(info.width / scaleFactor);
@@ -80,7 +80,7 @@ const getThumbnailDimensions = (info: Level0ImageInfo, minSize?: Partial<Size>):
 }
 
 // Determines which tiles to harvest for the given thumbnail min size
-const getThumbnailTiles = (info: Level0ImageInfo, minSize?: Partial<Size>): StitchableTile[] => {
+const getThumbnailTiles = (info: Level0ImageInfo, minSize?: Partial<TileSize>): StitchableTile[] => {
   const scaleFactor = getBestScaleFactor(info, minSize);
 
   const tileWidth = info.tiles[0].width;
@@ -116,7 +116,7 @@ const getThumbnailTiles = (info: Level0ImageInfo, minSize?: Partial<Size>): Stit
 
 export const getStitchedThumbnail = async (
   source: Level0ImageInfo | Level0ImageServiceResource,
-  minSize?: Partial<Size>
+  minSize?: Partial<TileSize>
 ): Promise<Blob> => {
   const info = 'tiles' in source
     ? source : await fetchImageInfo(source.serviceUrl);

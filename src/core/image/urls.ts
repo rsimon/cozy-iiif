@@ -36,6 +36,7 @@ const getImageURLFromService = (
 
   const { majorVersion, profileLevel } = parseImageService(service);
   const isLevel0 = profileLevel === 0;
+  const fullSizeParam = getFullSizeParam(majorVersion);
   
   if (isLevel0) {
     const { degrees, mirrored } = normalizeRotation(rotation);
@@ -48,7 +49,7 @@ const getImageURLFromService = (
     }
 
     if (size === 'full') {
-      return `${id}/full/full/0/default.jpg`;
+      return `${id}/full/${fullSizeParam}/0/default.jpg`;
     }
 
     // For level 0, find the closest pre-defined size
@@ -64,11 +65,19 @@ const getImageURLFromService = (
     }
 
     // Fallback: full image
-    return `${id}/full/full/0/default.jpg`;
+    return `${id}/full/${fullSizeParam}/0/default.jpg`;
   }
 
-  const sizeParam = size === 'full' ? 'full' : getConstrainedSizeParam(sourceBounds, size);
+  const sizeParam = size === 'full'
+    ? fullSizeParam
+    : getConstrainedSizeParam(sourceBounds, size, fullSizeParam);
   return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
+}
+
+const getFullSizeParam = (majorVersion: number): 'full' | 'max' => {
+  if (majorVersion === 2) return 'full';
+  if (majorVersion === 3) return 'max';
+  throw new RangeError(`Unsupported IIIF Image API version: ${majorVersion}`);
 }
 
 const getTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
@@ -95,12 +104,16 @@ const getCoverBounds = (bounds: Bounds, target: Size): Bounds => {
   return { ...bounds, y: bounds.y + (bounds.h - h) / 2, h };
 }
 
-const getConstrainedSizeParam = (bounds: Bounds, target: Size): string => {
+const getConstrainedSizeParam = (
+  bounds: Bounds,
+  target: Size,
+  fullSizeParam: 'full' | 'max'
+): string => {
   const widthScale = target.w / bounds.w;
   const heightScale = target.h / bounds.h;
   const scale = Math.min(widthScale, heightScale, 1);
 
-  if (scale === 1) return 'full';
+  if (scale === 1) return fullSizeParam;
   if (widthScale <= heightScale) return `${Math.max(1, Math.floor(bounds.w * scale))},`;
   return `,${Math.max(1, Math.floor(bounds.h * scale))}`;
 }
