@@ -2,6 +2,7 @@ import { normalizeTargetSize } from '../../core';
 import type { Bounds, Level0ImageInfo, Size } from '../../types';
 import type { GetLevel0ImageOpts } from '../types';
 
+// Applies the opts to the bounds, incl. center-cropping if requested
 export const getLevel0Region = (bounds: Bounds, opts: GetLevel0ImageOpts): Bounds => {
   const target = normalizeTargetSize(opts.size);
   if (target === 'full' || opts.fit !== 'cover') return bounds;
@@ -18,12 +19,14 @@ export const getLevel0Region = (bounds: Bounds, opts: GetLevel0ImageOpts): Bound
   return { ...bounds, y: bounds.y + Math.floor((bounds.h - h) / 2), h };
 }
 
+// Calculates output dimensions without upscaling
 export const getLevel0OutputSize = (
   bounds: Bounds,
   opts: GetLevel0ImageOpts,
   availableScale = 1
 ): Size => {
   const target = normalizeTargetSize(opts.size);
+
   if (target === 'full') {
     const scale = Math.min(1, availableScale);
     return {

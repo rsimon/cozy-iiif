@@ -1,3 +1,7 @@
+import { fetchImageInfo } from '../helpers';
+import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
+import { cropRegionFromTile } from './crop-region';
+import type { Crop, GetLevel0ImageOpts } from './types';
 import {
   getLevel0OutputSize,
   getLevel0Region,
@@ -5,11 +9,6 @@ import {
   getLevel0TilesForRegion,
   getThrottledLoader
 } from './utils';
-import type { Crop } from './types';
-import { cropRegionFromTile } from './crop-region';
-import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
-import { fetchImageInfo } from '../helpers';
-import type { GetLevel0ImageOpts } from './types';
 
 /**
  * Returns a tile and crop rectangle for displaying a Level 0 thumbnail.
@@ -43,7 +42,11 @@ export const getStitchedThumbnail = async (
     w: info.width,
     h: info.height
   }, opts);
+
+  // No need to fetch full size if not necessary 
   const desiredSize = getLevel0OutputSize(region, opts);
+
+  
   const scaleFactor = getLevel0ScaleFactor(info, region, desiredSize);
   const outputSize = getLevel0OutputSize(region, opts, 1 / scaleFactor);
   const tiles = getLevel0TilesForRegion(info, region, scaleFactor);

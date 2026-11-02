@@ -1,3 +1,12 @@
+
+import { clampRegion } from '../core/image/urls';
+import { fetchImageInfo } from '../helpers';
+import type { Crop, GetLevel0ImageOpts } from './types';
+import type {
+  Bounds,
+  Level0ImageInfo,
+  Level0ImageServiceResource
+} from '../types';
 import {
   getLevel0Tile,
   getLevel0TilesForRegion,
@@ -6,14 +15,6 @@ import {
   getLevel0Region,
   getLevel0ScaleFactor
 } from './utils';
-import { clampRegion } from '../core/image/urls';
-import { fetchImageInfo } from '../helpers';
-import type {
-  Bounds,
-  Level0ImageInfo,
-  Level0ImageServiceResource
-} from '../types';
-import type { Crop, GetLevel0ImageOpts } from './types';
 
 /**
  * CSS variant: the best single image for the region, plus the crop rectangle
@@ -25,6 +26,7 @@ export const cropRegionFromTile = (
   opts: GetLevel0ImageOpts = { size: 'full' }
 ): Crop => {
   const clampedBounds = clampRegion(bounds, { w: info.width, h: info.height });
+  
   const region = getLevel0Region(clampedBounds, opts);
   const outputSize = getLevel0OutputSize(region, opts);
 
