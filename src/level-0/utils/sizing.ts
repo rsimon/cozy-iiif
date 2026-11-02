@@ -1,26 +1,32 @@
 import { normalizeTargetSize } from '../../core';
+import { clampRegion } from '../../core/image/urls';
 import type { Bounds, Level0ImageInfo, Size } from '../../types';
 import type { GetLevel0ImageOpts } from '../types';
 
-// Applies the opts to the bounds, incl. center-cropping if requested
-export const getLevel0Region = (bounds: Bounds, opts: GetLevel0ImageOpts): Bounds => {
+// Clamps source bounds, then applies center-cropping when `cover` is requested.
+export const fitRegion = (
+  bounds: Bounds,
+  imageSize: Size,
+  opts: GetLevel0ImageOpts
+): Bounds => {
+  const clampedBounds = clampRegion(bounds, imageSize);
   const target = normalizeTargetSize(opts.size);
-  if (target === 'full' || opts.fit !== 'cover') return bounds;
+  if (target === 'full' || opts.fit !== 'cover') return clampedBounds;
 
   const targetAspect = target.w / target.h;
-  const sourceAspect = bounds.w / bounds.h;
+  const sourceAspect = clampedBounds.w / clampedBounds.h;
 
   if (sourceAspect > targetAspect) {
-    const w = Math.max(1, Math.floor(bounds.h * targetAspect));
-    return { ...bounds, x: bounds.x + Math.floor((bounds.w - w) / 2), w };
+    const w = Math.max(1, Math.floor(clampedBounds.h * targetAspect));
+    return { ...clampedBounds, x: clampedBounds.x + Math.floor((clampedBounds.w - w) / 2), w };
   }
 
-  const h = Math.max(1, Math.floor(bounds.w / targetAspect));
-  return { ...bounds, y: bounds.y + Math.floor((bounds.h - h) / 2), h };
+  const h = Math.max(1, Math.floor(clampedBounds.w / targetAspect));
+  return { ...clampedBounds, y: clampedBounds.y + Math.floor((clampedBounds.h - h) / 2), h };
 }
 
-// Calculates output dimensions without upscaling
-export const getLevel0OutputSize = (
+// Calculates rendered dimensions without upscaling.
+export const calculateRenderedSize = (
   bounds: Bounds,
   opts: GetLevel0ImageOpts,
   availableScale = 1
@@ -40,19 +46,4 @@ export const getLevel0OutputSize = (
     w: Math.max(1, Math.floor(bounds.w * scale)),
     h: Math.max(1, Math.floor(bounds.h * scale))
   };
-}
-
-export const getLevel0ScaleFactor = (
-  info: Level0ImageInfo,
-  bounds: Bounds,
-  outputSize: Size
-): number => {
-  const scaleFactors = info.tiles[0]?.scaleFactors;
-  if (!scaleFactors?.length) {
-    throw new Error(`No tile scale factors available for Level 0 image ${info.id}`);
-  }
-
-  const requiredDownscale = Math.max(bounds.w / outputSize.w, bounds.h / outputSize.h);
-  const sorted = [...scaleFactors].sort((a, b) => b - a);
-  return sorted.find(factor => factor <= requiredDownscale) ?? sorted[sorted.length - 1];
 }

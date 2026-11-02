@@ -3,8 +3,8 @@ import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import { cropRegionFromTile } from './crop-region';
 import type { Crop, GetLevel0ImageOpts } from './types';
 import {
-  getLevel0OutputSize,
-  getLevel0Region,
+  calculateRenderedSize,
+  fitRegion,
   getLevel0ScaleFactor,
   getLevel0TilesForRegion,
   getThrottledLoader
@@ -36,19 +36,20 @@ export const getStitchedThumbnail = async (
   if (info.type !== 'level0')
     throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
 
-  const region = getLevel0Region({
+  const imageSize = { w: info.width, h: info.height };
+  const region = fitRegion({
     x: 0,
     y: 0,
     w: info.width,
     h: info.height
-  }, opts);
+  }, imageSize, opts);
 
   // No need to fetch full size if not necessary 
-  const desiredSize = getLevel0OutputSize(region, opts);
+  const desiredSize = calculateRenderedSize(region, opts);
 
   
   const scaleFactor = getLevel0ScaleFactor(info, region, desiredSize);
-  const outputSize = getLevel0OutputSize(region, opts, 1 / scaleFactor);
+  const outputSize = calculateRenderedSize(region, opts, 1 / scaleFactor);
   const tiles = getLevel0TilesForRegion(info, region, scaleFactor);
 
   const canvas = document.createElement('canvas');

@@ -1,5 +1,4 @@
 
-import { clampRegion } from '../core/image/urls';
 import { fetchImageInfo } from '../helpers';
 import type { Crop, GetLevel0ImageOpts } from './types';
 import type {
@@ -11,8 +10,8 @@ import {
   getLevel0Tile,
   getLevel0TilesForRegion,
   getThrottledLoader,
-  getLevel0OutputSize,
-  getLevel0Region,
+  calculateRenderedSize,
+  fitRegion,
   getLevel0ScaleFactor
 } from './utils';
 
@@ -25,12 +24,11 @@ export const cropRegionFromTile = (
   bounds: Bounds,
   opts: GetLevel0ImageOpts = { size: 'full' }
 ): Crop => {
-  const clampedBounds = clampRegion(bounds, { w: info.width, h: info.height });
-  
-  const region = getLevel0Region(clampedBounds, opts);
-  const outputSize = getLevel0OutputSize(region, opts);
+  const imageSize = { w: info.width, h: info.height };
+  const region = fitRegion(bounds, imageSize, opts);
+  const outputSize = calculateRenderedSize(region, opts);
 
-  const tile = getLevel0Tile(info, region, outputSize.w);
+  const tile = getLevel0Tile(info, region, outputSize);
   if (!tile) throw new Error(`No usable tile found for Level 0 image ${info.id}`);
 
   const sx = tile.width / tile.region.w;
@@ -65,11 +63,11 @@ export const cropStitchedRegion = async (
   if (info.type !== 'level0')
     throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
 
-  const clampedBounds = clampRegion(bounds, { w: info.width, h: info.height });
-  const region = getLevel0Region(clampedBounds, opts);
-  const desiredSize = getLevel0OutputSize(region, opts);
+  const imageSize = { w: info.width, h: info.height };
+  const region = fitRegion(bounds, imageSize, opts);
+  const desiredSize = calculateRenderedSize(region, opts);
   const scaleFactor = getLevel0ScaleFactor(info, region, desiredSize);
-  const outputSize = getLevel0OutputSize(region, opts, 1 / scaleFactor);
+  const outputSize = calculateRenderedSize(region, opts, 1 / scaleFactor);
   const tiles = getLevel0TilesForRegion(info, region, scaleFactor);
   
   const canvas = document.createElement('canvas');
