@@ -71,7 +71,7 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
 export const getThumbnailURL = (
   canvas: Canvas, 
   images: CozyImageResource[] = getImages(canvas)
-) => (opts: GetImageURLOpts = { size: 400 }): string | undefined => {
+) => (opts: GetImageURLOpts = { size: 400 }) => {
   const { width, height } = canvas;
   if (!width || !height) return;
 

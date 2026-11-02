@@ -25,7 +25,7 @@ interface BaseImageInfo {
 
   readonly source: IIIFExternalWebResource;
 
-  getImageURL(opts?: GetImageURLOpts): string | undefined;
+  getImageURL(opts?: GetImageURLOpts): string;
 
 }
 
@@ -54,7 +54,7 @@ export interface DynamicImageInfo extends BaseImageInfo {
 
   readonly type: 'dynamic';
 
-  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string | undefined;
+  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string;
 
 }
 

@@ -11,6 +11,8 @@ import type {
 const normalizeTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
   if (size === 'full') return size;
 
+  console.log('norm size', size);
+
   const target = typeof size === 'number' ? { w: size, h: size } : size;
   if (!Number.isFinite(target.w) || !Number.isFinite(target.h) || target.w <= 0 || target.h <= 0) {
     throw new RangeError('Image URL size dimensions must be finite positive numbers');
@@ -130,7 +132,10 @@ export const getImageURL = (
   height: number | undefined, 
   service: Service  
 ) => (opts: GetImageURLOpts = { size: 400 }) => {
-  if (!width || !height) return;
+  if (!width || !height) {
+    console.warn('Undefined image size');
+    return '';
+  }
 
   const size = normalizeTargetSize(opts.size);
   if (size === 'full')
