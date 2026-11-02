@@ -3,7 +3,9 @@ import { clampRegion } from '../../core/image/urls';
 import type { Bounds, Level0ImageInfo, Size } from '../../types';
 import type { GetLevel0ImageOpts } from '../types';
 
-// Clamps source bounds, then applies center-cropping when `cover` is requested.
+/**
+ * Clamps source bounds, then applies center-cropping when `cover` is requested
+ */
 export const fitRegion = (
   bounds: Bounds,
   imageSize: Size,
@@ -25,7 +27,9 @@ export const fitRegion = (
   return { ...clampedBounds, y: clampedBounds.y + Math.floor((clampedBounds.h - h) / 2), h };
 }
 
-// Calculates rendered dimensions without upscaling.
+/**
+ * Calculates rendered dimensions without upscaling
+ */
 export const calculateRenderedSize = (
   bounds: Bounds,
   opts: GetLevel0ImageOpts,

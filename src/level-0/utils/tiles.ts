@@ -13,7 +13,26 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 }
 
 /**
- * All full-image tiles listed in `sizes`
+ * Returns the best-matching available Level 0 scale factor for the given
+ * resolution: requested region vs. requested output size.
+ */
+export const getLevel0ScaleFactor = (
+  info: Level0ImageInfo,
+  region: Bounds,
+  outputSize: Size
+): number => {
+  const scaleFactors = info.tiles[0]?.scaleFactors;
+  if (!scaleFactors?.length) {
+    throw new Error(`No tile scale factors available for Level 0 image ${info.id}`);
+  }
+
+  const requiredDownscale = Math.max(region.w / outputSize.w, region.h / outputSize.h);
+  const sorted = [...scaleFactors].sort((a, b) => b - a);
+  return sorted.find(factor => factor <= requiredDownscale) ?? sorted[sorted.length - 1];
+}
+
+/**
+ * All full-image tiles listed in `sizes`.
  */
 const getFullTiles = (info: CozyImageInfo): Tile[] => {
   const region: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
@@ -27,6 +46,9 @@ const getFullTiles = (info: CozyImageInfo): Tile[] => {
   }));
 }
 
+/**
+ * Returns all tiles intersecting the given region at the given scale factor.
+ */
 export const getLevel0TilesForRegion = (
   info: Level0ImageInfo,
   bounds: Bounds,
@@ -74,7 +96,12 @@ export const getLevel0TilesForRegion = (
   return tiles;
 }
 
-const getLevel0TileForScale = (
+/**
+ * For one TileSpec (w, h, scaleFactors[]), and once scaleFactor, returns
+ * the single tile that fully contains the requested region, or undefined
+ * if the region covers more than one tile. 
+ */
+const getLevel0FullImageTileForScale = (
   info: Level0ImageInfo,
   tile: TileSpec,
   scaleFactor: number,
@@ -126,15 +153,18 @@ const getLevel0TileForScale = (
   };
 };
 
-// The smallest tile or size that provides the requested region resolution,
-// otherwise the candidate with the best coverage in both dimensions.
+/** 
+ * The smallest tile or source that provides the requested region in 
+ * the given size, otherwise the candidate with the best available 
+ * resolution.
+ */
 export const getLevel0Tile = (
   info: Level0ImageInfo,
   region: Bounds,
   size: Size
 ): Tile | undefined => {
   const tileSources = info.tiles.flatMap((tile) =>
-    tile.scaleFactors.map(sf => getLevel0TileForScale(info, tile, sf, region))
+    tile.scaleFactors.map(sf => getLevel0FullImageTileForScale(info, tile, sf, region))
   );
 
   const candidates = [...getFullTiles(info), ...tileSources]
@@ -142,10 +172,12 @@ export const getLevel0Tile = (
 
   const requestedWidth = Math.min(size.w, region.w);
   const requestedHeight = Math.min(size.h, region.h);
+
   const resolution = (candidate: Tile) => ({
     w: candidate.width / candidate.region.w,
     h: candidate.height / candidate.region.h
   });
+
   const providesSize = (candidate: Tile) => {
     const candidateResolution = resolution(candidate);
     return candidateResolution.w * region.w >= requestedWidth &&
@@ -186,19 +218,4 @@ export const getLevel0Tile = (
     height: info.height,
     region: { x: 0, y: 0, w: info.width, h: info.height }
   };
-}
-
-export const getLevel0ScaleFactor = (
-  info: Level0ImageInfo,
-  bounds: Bounds,
-  outputSize: Size
-): number => {
-  const scaleFactors = info.tiles[0]?.scaleFactors;
-  if (!scaleFactors?.length) {
-    throw new Error(`No tile scale factors available for Level 0 image ${info.id}`);
-  }
-
-  const requiredDownscale = Math.max(bounds.w / outputSize.w, bounds.h / outputSize.h);
-  const sorted = [...scaleFactors].sort((a, b) => b - a);
-  return sorted.find(factor => factor <= requiredDownscale) ?? sorted[sorted.length - 1];
 }
