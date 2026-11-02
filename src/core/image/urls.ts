@@ -8,23 +8,6 @@ import type {
   Size
 } from '../../types';
 
-/** 
- * Shorter side is at least minSize.
- */ 
-export const getMinSizeDimensions = (
-  width: number,
-  height: number,
-  minSize: number
-): { w: number; h: number } => {
-  const shorter = Math.min(width, height);
-
-  // Multiply before dividing, so the shorter side comes out exactly minSize
-  return {
-    w: Math.ceil((width * minSize) / shorter),
-    h: Math.ceil((height * minSize) / shorter)
-  };
-}
-
 const getImageURLFromService = (
   service: Service,
   region: string,
@@ -61,7 +44,6 @@ const getImageURLFromService = (
         .filter(s => (s.width * s.height) >= size.w * size.h)[0];
 
       const isV2 = majorVersion === 2;
-        
       if (suitableSize)
         return `${id}/full/${suitableSize.width},${isV2 ? '' : suitableSize.height}/0/default.jpg`;
     }
@@ -73,6 +55,7 @@ const getImageURLFromService = (
   const sizeParam = size === 'full'
     ? fullSizeParam
     : getConstrainedSizeParam(sourceBounds, size, fullSizeParam);
+
   return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
 }
 

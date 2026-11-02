@@ -89,7 +89,7 @@ export interface CozyCanvas {
 
   getMetadata(locale?: string): CozyMetadata[];
 
-  getThumbnailURL(minSize?: number): string;
+  getThumbnailURL(opts?: GetImageURLOpts): string | undefined;
 
 }
 

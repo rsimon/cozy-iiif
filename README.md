@@ -83,11 +83,11 @@ otherwise.
 ```ts
 const firstCanvas = manifest.canvases[0];
 
-// With default size (400px smallest dimension)
+// With default target size (400x400, contain)
 console.log(firstCanvas.getThumbnailURL());
 
-// With custom minimum smallest dimension
-console.log(firstCanvas.getThumbnailURL(600));
+// With custom target size and fit
+console.log(firstCanvas.getThumbnailURL({ size: 600, fit: 'cover' }));
 ```
 
 ### Table of Contents Helper

@@ -55,6 +55,10 @@ describe('Cozy', () => {
     expect(fullSizeImage.target).toBeUndefined();
     expect(fullSizeImage.getImageURL({ size: 'full' })).toBe(
       'https://iiif.bodleian.ox.ac.uk/iiif/image/79bf8325-22fa-4696-afe5-7d827d84f393/full/full/0/default.jpg')
+    expect(canvas.getThumbnailURL()).toBe(
+      'https://iiif.bodleian.ox.ac.uk/iiif/image/79bf8325-22fa-4696-afe5-7d827d84f393/full/,400/0/default.jpg')
+    expect(canvas.getThumbnailURL({ size: 600, rotation: 90 })).toBe(
+      'https://iiif.bodleian.ox.ac.uk/iiif/image/79bf8325-22fa-4696-afe5-7d827d84f393/full/,600/90/default.jpg')
 
     expect(positionedImage.target).toBeDefined();
     expect(positionedImage.target?.x).toBe(1307);
