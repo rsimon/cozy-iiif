@@ -2,7 +2,6 @@ import type { Service } from "@iiif/presentation-3";
 import type {
   Bounds,
   GetImageURLOpts,
-  GetRegionURLOpts,
   ImageURLSize,
   Rotation
 } from "../../types";
@@ -30,6 +29,7 @@ const getImageURLFromService = (
   service: Service,
   region: string,
   size: 'full' | ImageURLSize,
+  sourceBounds: Bounds,
   rotation: Rotation = 0
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
@@ -67,7 +67,7 @@ const getImageURLFromService = (
     return `${id}/full/full/0/default.jpg`;
   }
 
-  const sizeParam = size === 'full' ? 'full' : `!${size.w},${size.h}`;
+  const sizeParam = size === 'full' ? 'full' : getConstrainedSizeParam(sourceBounds, size);
   return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
 }
 
@@ -95,6 +95,16 @@ const getCoverBounds = (bounds: Bounds, target: ImageURLSize): Bounds => {
   return { ...bounds, y: bounds.y + (bounds.h - h) / 2, h };
 }
 
+const getConstrainedSizeParam = (bounds: Bounds, target: ImageURLSize): string => {
+  const widthScale = target.w / bounds.w;
+  const heightScale = target.h / bounds.h;
+  const scale = Math.min(widthScale, heightScale, 1);
+
+  if (scale === 1) return 'full';
+  if (widthScale <= heightScale) return `${Math.max(1, Math.floor(bounds.w * scale))},`;
+  return `,${Math.max(1, Math.floor(bounds.h * scale))}`;
+}
+
 const toRegionParam = ({ x, y, w, h }: Bounds): string =>
   `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
 
@@ -111,21 +121,19 @@ export const getImageURL = (
 
   const size = getTargetSize(opts.size);
   if (size === 'full') {
-    return getImageURLFromService(service, 'full', size, opts.rotation);
+    return getImageURLFromService(service, 'full', size, { x: 0, y: 0, w: width, h: height }, opts.rotation);
   }
 
   const bounds = { x: 0, y: 0, w: width, h: height };
-  const region = opts.fit === 'cover'
-    ? toRegionParam(getCoverBounds(bounds, size))
-    : 'full';
-
-  return getImageURLFromService(service, region, size, opts.rotation);
+  const requestBounds = opts.fit === 'cover' ? getCoverBounds(bounds, size) : bounds;
+  const region = opts.fit === 'cover' ? toRegionParam(requestBounds) : 'full';
+  return getImageURLFromService(service, region, size, requestBounds, opts.rotation);
 }
 
 const getRegionURLFromService = (
   service: Service,
   bounds: Bounds,
-  opts: GetRegionURLOpts = { size: 400 }
+  opts: GetImageURLOpts = { size: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
   const isLevel0 = parseImageService(service).profileLevel === 0;
@@ -140,8 +148,7 @@ const getRegionURLFromService = (
     ? getCoverBounds(bounds, size)
     : bounds;
   const regionParam = toRegionParam(regionBounds);
-  const sizeParam = size === 'full' ? 'full' : `!${size.w},${size.h}`;
-  return `${id}/${regionParam}/${sizeParam}/${toRotationParam(opts.rotation ?? 0)}/default.jpg`;
+  return getImageURLFromService(service, regionParam, size, regionBounds, opts.rotation);
 }
 
 /**
@@ -152,7 +159,7 @@ export const getRegionURL = (
   service: Service
 ) => (
   bounds: Bounds,
-  opts: GetRegionURLOpts = { size: 400 }
+  opts: GetImageURLOpts = { size: 400 }
 ): string | undefined => {
   return getRegionURLFromService(service, bounds, opts);
 }

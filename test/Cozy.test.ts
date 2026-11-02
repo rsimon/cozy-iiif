@@ -167,27 +167,29 @@ describe('Cozy', () => {
 
     const defaultImageURL = resource.getImageURL();
     expect(defaultImageURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!400,400/0/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/400,/0/default.jpg')
 
     const imageURL = resource.getImageURL({ size: 800 });
     expect(imageURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!800,800/0/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/800,/0/default.jpg')
 
     const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
     expect(regionURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/!400,400/0/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/full/0/default.jpg')
 
     expect(resource.getImageURL({ size: 'full' })).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/full/0/default.jpg')
     expect(resource.getImageURL({ size: { w: 800, h: 600 }, fit: 'contain' })).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!800,600/0/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/800,/0/default.jpg')
+    expect(resource.getImageURL({ size: { w: 1200, h: 800 }, fit: 'contain' })).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/,800/0/default.jpg')
     expect(resource.getImageURL({ size: 800, fit: 'cover', rotation: 90 })).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/504,0,3024,3024/!800,800/90/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/504,0,3024,3024/800,/90/default.jpg')
     expect(resource.getRegionURL(
       { x: 10, y: 10, w: 100, h: 50 },
       { size: 100, fit: 'cover', rotation: 90 }
     )).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/35,10,50,50/!100,100/90/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/35,10,50,50/full/90/default.jpg')
   });
 
   it('should parse a canvas resource with a SpecificResource annotation correctly', () => {

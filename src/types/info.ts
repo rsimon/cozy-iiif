@@ -1,5 +1,5 @@
 import type { IIIFExternalWebResource } from '@iiif/parser';
-import type { Bounds, GetImageURLOpts, GetRegionURLOpts } from './image';
+import type { Bounds, GetImageURLOpts } from './image';
 
 export type CozyImageInfo = 
   | Level0ImageInfo
@@ -54,8 +54,7 @@ export interface DynamicImageInfo extends BaseImageInfo {
 
   readonly type: 'dynamic';
 
-  getRegionURL(bounds: Bounds, opts?: GetRegionURLOpts): string | undefined;
+  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string | undefined;
 
 }
-
 

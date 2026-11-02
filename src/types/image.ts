@@ -49,7 +49,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly profileLevel: number;
 
-  getRegionURL(bounds: Bounds, opts?: GetRegionURLOpts): string | undefined;
+  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string | undefined;
 
 }
 
@@ -109,8 +109,6 @@ export interface GetImageURLOpts {
   rotation?: Rotation;
 
 }
-
-export type GetRegionURLOpts = GetImageURLOpts;
 
 export interface RotationOptions {
 
