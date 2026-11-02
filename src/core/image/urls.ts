@@ -106,7 +106,7 @@ export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
   service: Service  
-) => (opts: GetImageURLOpts = { size: 800 }) => {
+) => (opts: GetImageURLOpts = { size: 400 }) => {
   if (!width || !height) return;
 
   const size = getTargetSize(opts.size);

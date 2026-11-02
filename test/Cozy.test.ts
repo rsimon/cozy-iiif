@@ -165,6 +165,10 @@ describe('Cozy', () => {
     expect(tiles.width).toBe(512);
     expect(tiles.scaleFactors.length).toBe(3);
 
+    const defaultImageURL = resource.getImageURL();
+    expect(defaultImageURL).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!400,400/0/default.jpg')
+
     const imageURL = resource.getImageURL({ size: 800 });
     expect(imageURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!800,800/0/default.jpg')
