@@ -1,7 +1,7 @@
-import type { Bounds, Level0ImageInfo } from '../types';
-import type { GetLevel0ImageOpts, Level0Size } from './types';
+import type { Bounds, Level0ImageInfo, Size } from '../types';
+import type { GetLevel0ImageOpts } from './types';
 
-export const normalizeLevel0Size = (size: GetLevel0ImageOpts['size']): Level0Size | 'full' => {
+export const normalizeLevel0Size = (size: GetLevel0ImageOpts['size']): Size | 'full' => {
   if (size === 'full') return size;
 
   const target = typeof size === 'number' ? { w: size, h: size } : size;
@@ -13,10 +13,8 @@ export const normalizeLevel0Size = (size: GetLevel0ImageOpts['size']): Level0Siz
 }
 
 export const getLevel0Region = (bounds: Bounds, opts: GetLevel0ImageOpts): Bounds => {
-  if (opts.size === 'full' || opts.fit !== 'cover') return bounds;
-  const target = typeof opts.size === 'number'
-    ? { w: opts.size, h: opts.size }
-    : opts.size;
+  const target = normalizeLevel0Size(opts.size);
+  if (target === 'full' || opts.fit !== 'cover') return bounds;
 
   const targetAspect = target.w / target.h;
   const sourceAspect = bounds.w / bounds.h;
@@ -34,7 +32,7 @@ export const getLevel0OutputSize = (
   bounds: Bounds,
   opts: GetLevel0ImageOpts,
   availableScale = 1
-): Level0Size => {
+): Size => {
   const target = normalizeLevel0Size(opts.size);
   if (target === 'full') {
     const scale = Math.min(1, availableScale);
@@ -54,7 +52,7 @@ export const getLevel0OutputSize = (
 export const getLevel0ScaleFactor = (
   info: Level0ImageInfo,
   bounds: Bounds,
-  outputSize: Level0Size
+  outputSize: Size
 ): number => {
   const scaleFactors = info.tiles[0]?.scaleFactors;
   if (!scaleFactors?.length) {
