@@ -1,11 +1,12 @@
-import { getLevel0Tile, getThrottledLoader } from './utils';
-import { getLevel0TilesForRegion } from './utils/level-0-utils';
-import { clampRegion } from '../core/image/urls';
 import {
+  getLevel0Tile,
+  getLevel0TilesForRegion,
+  getThrottledLoader,
   getLevel0OutputSize,
   getLevel0Region,
   getLevel0ScaleFactor
-} from './sizing';
+} from './utils';
+import { clampRegion } from '../core/image/urls';
 import { fetchImageInfo } from '../helpers';
 import type {
   Bounds,

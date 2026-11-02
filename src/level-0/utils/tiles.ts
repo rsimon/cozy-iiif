@@ -15,7 +15,7 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 /**
  * All full-image tiles listed in `sizes`
  */
-export const getFullTiles = (info: CozyImageInfo): Tile[] => {
+const getFullTiles = (info: CozyImageInfo): Tile[] => {
   const region: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
 
   // Only use the explicitly listed sizes, without forcing the raw full image
@@ -74,7 +74,7 @@ export const getLevel0TilesForRegion = (
   return tiles;
 }
 
-export const getLevel0TileForScale = (
+const getLevel0TileForScale = (
   info: Level0ImageInfo,
   tile: TileSpec,
   scaleFactor: number,
@@ -94,9 +94,6 @@ export const getLevel0TileForScale = (
 
   const levelW = Math.ceil(info.width / scaleFactor);
   const levelH = Math.ceil(info.height / scaleFactor);
-
-  const isFullSize = (w: number, h: number) =>
-    info.majorVersion === 2 ? w === info.width : w === info.width && h === info.height;
 
   // If the whole image fits into one tile, request the whole img at this level
   if (levelW < tile.width && levelH < tile.height) {
@@ -119,9 +116,7 @@ export const getLevel0TileForScale = (
   const regionParam = x === 0 && y === 0 && w === info.width && h === info.height
     ? 'full' : `${x},${y},${w},${h}`;
 
-  const size = isFullSize(sizeW, sizeH)
-    ? (info.majorVersion === 2 ? 'full' : 'max')
-    : (info.majorVersion === 2 ? `${sizeW},` : `${sizeW},${sizeH}`);
+  const size = toSize(info, sizeW, sizeH);
 
   return {
     url: toURL(info, regionParam, size),

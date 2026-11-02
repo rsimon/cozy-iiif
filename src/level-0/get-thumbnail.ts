@@ -1,14 +1,14 @@
-import { getThrottledLoader } from './utils/throttled-loader';
-import type { Crop } from './types';
-import { cropRegionFromTile } from './crop-region';
-import { getLevel0TilesForRegion } from './utils/level-0-utils';
-import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
-import { fetchImageInfo } from '../helpers';
 import {
   getLevel0OutputSize,
   getLevel0Region,
-  getLevel0ScaleFactor
-} from './sizing';
+  getLevel0ScaleFactor,
+  getLevel0TilesForRegion,
+  getThrottledLoader
+} from './utils';
+import type { Crop } from './types';
+import { cropRegionFromTile } from './crop-region';
+import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
+import { fetchImageInfo } from '../helpers';
 import type { GetLevel0ImageOpts } from './types';
 
 /**

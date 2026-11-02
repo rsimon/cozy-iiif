@@ -1,7 +1,7 @@
-import type { Bounds, Level0ImageInfo, Size } from '../types';
-import type { GetLevel0ImageOpts } from './types';
+import type { Bounds, Level0ImageInfo, Size } from '../../types';
+import type { GetLevel0ImageOpts } from '../types';
 
-export const normalizeLevel0Size = (size: GetLevel0ImageOpts['size']): Size | 'full' => {
+const normalizeLevel0Size = (size: GetLevel0ImageOpts['size']): Size | 'full' => {
   if (size === 'full') return size;
 
   const target = typeof size === 'number' ? { w: size, h: size } : size;
