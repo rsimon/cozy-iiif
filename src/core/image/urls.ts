@@ -1,5 +1,11 @@
 import type { Service } from "@iiif/presentation-3";
-import type { Bounds, GetRegionURLOpts, Rotation } from "../../types";
+import type {
+  Bounds,
+  GetImageURLOpts,
+  GetRegionURLOpts,
+  ImageURLSize,
+  Rotation
+} from "../../types";
 import { getPropertyValue } from "../resource";
 import { parseImageService } from "./service";
 
@@ -22,29 +28,35 @@ export const getMinSizeDimensions = (
 
 const getImageURLFromService = (
   service: Service,
-  width: number,
-  height: number,
+  region: string,
+  size: 'full' | ImageURLSize,
   rotation: Rotation = 0
-): string => {
+): string | undefined => {
   const id = getPropertyValue(service, 'id');
 
-  const compliance = service.profile || '';
-
-  const isLevel0 = typeof compliance === 'string' &&
-    (compliance.includes('level0') || compliance.includes('level:0'));
+  const { majorVersion, profileLevel } = parseImageService(service);
+  const isLevel0 = profileLevel === 0;
   
   if (isLevel0) {
     const { degrees, mirrored } = normalizeRotation(rotation);
     if (degrees !== 0 || mirrored)
       console.warn(`Level 0 image - rotation and mirroring not supported`);
 
+    if (region !== 'full') {
+      console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
+      return;
+    }
+
+    if (size === 'full') {
+      return `${id}/full/full/0/default.jpg`;
+    }
+
     // For level 0, find the closest pre-defined size
     if ('sizes' in service && Array.isArray(service.sizes)) {
       const suitableSize = service.sizes
         .sort((a, b) => (b.width * b.height) - (a.width * a.height))
-        .filter(s => (s.width * s.height) >= width * height)[0];
+        .filter(s => (s.width * s.height) >= size.w * size.h)[0];
 
-      const { majorVersion } = parseImageService(service);
       const isV2 = majorVersion === 2;
         
       if (suitableSize)
@@ -55,8 +67,36 @@ const getImageURLFromService = (
     return `${id}/full/full/0/default.jpg`;
   }
 
-  return `${id}/full/!${width},${height}/${toRotationParam(rotation)}/default.jpg`;
+  const sizeParam = size === 'full' ? 'full' : `!${size.w},${size.h}`;
+  return `${id}/${region}/${sizeParam}/${toRotationParam(rotation)}/default.jpg`;
 }
+
+const getTargetSize = (size: GetImageURLOpts['size']): ImageURLSize | 'full' => {
+  if (size === 'full') return size;
+
+  const target = typeof size === 'number' ? { w: size, h: size } : size;
+  if (!Number.isFinite(target.w) || !Number.isFinite(target.h) || target.w <= 0 || target.h <= 0) {
+    throw new RangeError('Image URL size dimensions must be finite positive numbers');
+  }
+
+  return target;
+}
+
+const getCoverBounds = (bounds: Bounds, target: ImageURLSize): Bounds => {
+  const targetAspect = target.w / target.h;
+  const sourceAspect = bounds.w / bounds.h;
+
+  if (sourceAspect > targetAspect) {
+    const w = bounds.h * targetAspect;
+    return { ...bounds, x: bounds.x + (bounds.w - w) / 2, w };
+  }
+
+  const h = bounds.w / targetAspect;
+  return { ...bounds, y: bounds.y + (bounds.h - h) / 2, h };
+}
+
+const toRegionParam = ({ x, y, w, h }: Bounds): string =>
+  `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
 
 /**
  * Curried helper to get the image URL with given parameters from 
@@ -66,50 +106,42 @@ export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
   service: Service  
-) => (minSize = 800, rotation: Rotation = 0) => {
+) => (opts: GetImageURLOpts = { size: 800 }) => {
   if (!width || !height) return;
 
-  const aspect = width / height;
-  const isPortrait = aspect < 1;
-  
-  const h = Math.ceil(isPortrait ? minSize / aspect : minSize);
-  const w = Math.ceil(isPortrait ? minSize : minSize / aspect);
+  const size = getTargetSize(opts.size);
+  if (size === 'full') {
+    return getImageURLFromService(service, 'full', size, opts.rotation);
+  }
 
-  return getImageURLFromService(service!, w, h, rotation);
+  const bounds = { x: 0, y: 0, w: width, h: height };
+  const region = opts.fit === 'cover'
+    ? toRegionParam(getCoverBounds(bounds, size))
+    : 'full';
+
+  return getImageURLFromService(service, region, size, opts.rotation);
 }
 
 const getRegionURLFromService = (
   service: Service,
   bounds: Bounds,
-  rotation: Rotation = 0,
-  opts: GetRegionURLOpts = { minSize: 400 }
+  opts: GetRegionURLOpts = { size: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
-  const compliance = service.profile || '';
-
-  const isLevel0 = typeof compliance === 'string' &&
-    (compliance.includes('level0') || compliance.includes('level:0'));
+  const isLevel0 = parseImageService(service).profileLevel === 0;
 
   if (isLevel0) {
     console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
     return;
   }
 
-  const { x, y, w , h } = bounds;
-  const { minSize = 400, maxSize } = opts;
-
-  // Find minimum scale required to keep shortest edge >= minSize
-  const minRequiredScale = minSize / Math.min(w, h);
-
-  const scale = maxSize 
-    ? Math.max(minRequiredScale, maxSize / Math.max(w, h))
-    : minRequiredScale;
-
-  const width = Math.round(w * scale);
-  const height = Math.round(h * scale);
-
-  const regionParam = `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
-  return `${id}/${regionParam}/!${width},${height}/${toRotationParam(rotation)}/default.jpg`;
+  const size = getTargetSize(opts.size);
+  const regionBounds = size !== 'full' && opts.fit === 'cover'
+    ? getCoverBounds(bounds, size)
+    : bounds;
+  const regionParam = toRegionParam(regionBounds);
+  const sizeParam = size === 'full' ? 'full' : `!${size.w},${size.h}`;
+  return `${id}/${regionParam}/${sizeParam}/${toRotationParam(opts.rotation ?? 0)}/default.jpg`;
 }
 
 /**
@@ -120,10 +152,9 @@ export const getRegionURL = (
   service: Service
 ) => (
   bounds: Bounds,
-  rotation: Rotation = 0,
-  opts: GetRegionURLOpts = { minSize: 400 }
+  opts: GetRegionURLOpts = { size: 400 }
 ): string | undefined => {
-  return getRegionURLFromService(service, bounds, rotation, opts);
+  return getRegionURLFromService(service, bounds, opts);
 }
 
 const normalizeRotation = (rotation: Rotation) => {
@@ -140,4 +171,3 @@ const toRotationParam = (rotation: Rotation): string => {
   const { degrees, mirrored } = normalizeRotation(rotation);
   return mirrored ? `!${((-degrees % 360) + 360) % 360}` : `${degrees}`;
 }
-

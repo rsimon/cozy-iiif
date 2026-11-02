@@ -23,7 +23,7 @@ interface BaseImageResource {
 
   readonly selector?: Bounds;
 
-  getImageURL(minSize?: number, rotation?: Rotation): string;
+  getImageURL(opts?: GetImageURLOpts): string | undefined;
 
 }
 
@@ -49,7 +49,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly profileLevel: number;
 
-  getRegionURL(bounds: Bounds, rotation?: Rotation, opts?: GetRegionURLOpts): string;
+  getRegionURL(bounds: Bounds, opts?: GetRegionURLOpts): string | undefined;
 
 }
 
@@ -92,13 +92,25 @@ export interface Bounds {
 
 }
 
-export interface GetRegionURLOpts {
+export interface ImageURLSize {
 
-  minSize?: number;
+  w: number;
 
-  maxSize?: number;
+  h: number;
 
 }
+
+export interface GetImageURLOpts {
+
+  size: 'full' | number | ImageURLSize;
+
+  fit?: 'cover' | 'contain';
+
+  rotation?: Rotation;
+
+}
+
+export type GetRegionURLOpts = GetImageURLOpts;
 
 export interface RotationOptions {
 

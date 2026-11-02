@@ -129,14 +129,17 @@ const bounds = {
   h: 240
 };
 
-// With default minimum shortest dimension (400px);
+// With default 400px square target, preserving the full region
 console.log(image.getRegionURL(bounds));
 
-// With custom minimum shortest dimension and 0 rotation
-console.log(image.getRegionURL(bounds, 0, { minSize: 800 }));
+// Fit a 800x600 target while preserving the full region
+console.log(image.getRegionURL(bounds, { size: { w: 800, h: 600 }, fit: 'contain' }));
 
-// Full image with custom minimum shorted dimension
-console.log(image.getImageURL(800));
+// Fill a square target, cropping the image as needed
+console.log(image.getImageURL({ size: 800, fit: 'cover', rotation: 0 }));
+
+// Request the original resolution
+console.log(image.getImageURL({ size: 'full' }));
 
 // Resolves the actual image pixel size from the info.json
 // or the image file (which may **differ**) from the canvas size!
@@ -145,46 +148,17 @@ console.log(image.getPixelSize());
 
 ## Level 0 Utilities
 
-Working with a Level 0 tileset, but need a thumbnail, or crop a region? The `cozy-iiif/level-0` module 
-has you covered! Cozy uses Web workers for background image processing and request throttling when 
-harvesting tilesets for stitching. Stitched images are harvested at the smallest possible size, 
-to keep things fast and prevent unnecessary downloads.
-
-**Thumbnails**
+The `cozy-iiif/level-0` module can stitch Level 0 tiles into a thumbnail or region image:
 
 ```ts
-import { getThumbnail } from 'cozy-iiif/level-0';
+import { getStitchedThumbnail, cropStitchedRegion } from 'cozy-iiif/level-0';
 
 const firstImage = canvas.images[0];
-if (firstImage.type !== 'level0') {
-  // Normal thumbnail URL (string)
-  console.log(canvas.getThumbnailURL());
-} else {
-  getThumbnail(firstImage).then(blob => {
-    // Creates a data URL you can use as `src` for an image
-    console.log(URL.createObjectURL(blob));
-  });
-}
-```
-
-**Regions**
-
-```ts
-import { cropRegion } from 'cozy-iiif/level-0';
-
-const firstImage = canvas.images[0];
-
-const bounds = {
-  x: 100,
-  y: 100,
-  w: 320,
-  h: 240
-};
 
 if (firstImage.type === 'level0') {
-  cropRegion(firstImage, bounds).then(blob => {
-    console.log(URL.createObjectURL(blob));
-  });
+  const thumbnail = await getStitchedThumbnail(firstImage);
+  const region = await cropStitchedRegion(firstImage, { x: 100, y: 100, w: 320, h: 240 });
+  console.log(URL.createObjectURL(thumbnail), URL.createObjectURL(region));
 }
 ```
 

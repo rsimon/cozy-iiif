@@ -163,7 +163,3 @@ export const cropStitchedRegion = async (
   });
 
 }
-
-export const cropBounds = () => {
-
-}
