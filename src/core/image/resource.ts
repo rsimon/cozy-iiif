@@ -58,7 +58,7 @@ export const parseImageResource = (
     } else {
       return {
         ...image,
-        getRegionURL: getRegionURL(image.service)
+        getRegionURL: getRegionURL(image.service, width, height)
       } as DynamicImageServiceResource;
     }
   } else {
@@ -91,6 +91,5 @@ const getStaticImagePixelSize = (url: string) => (): Promise<Size> => {
     }
   });
 }
-
 
 

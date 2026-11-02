@@ -121,6 +121,33 @@ const getCoverBounds = (bounds: Bounds, target: Size): Bounds => {
 const toRegionParam = ({ x, y, w, h }: Bounds): string =>
   `${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`;
 
+export const clampRegion = (bounds: Bounds, imageSize: Size): Bounds => {
+  const { x, y, w, h } = bounds;
+  const { w: imageWidth, h: imageHeight } = imageSize;
+
+  if (
+    ![x, y, w, h, imageWidth, imageHeight].every(Number.isFinite) ||
+    w <= 0 ||
+    h <= 0 ||
+    imageWidth <= 0 ||
+    imageHeight <= 0
+  ) {
+    throw new RangeError('Region coordinates must be finite, and region and image dimensions must be positive');
+  }
+
+  const left = Math.max(0, Math.min(imageWidth - 1, x));
+  const top = Math.max(0, Math.min(imageHeight - 1, y));
+  const right = Math.min(imageWidth, Math.max(left + 1, x + w));
+  const bottom = Math.min(imageHeight, Math.max(top + 1, y + h));
+
+  return {
+    x: left,
+    y: top,
+    w: right - left,
+    h: bottom - top
+  };
+}
+
 /**
  * Curried helper to get the image URL with given parameters from 
  * an image service.
@@ -147,7 +174,9 @@ export const getImageURL = (
  * an image service.
  */
 export const getRegionURL = (
-  service: Service
+  service: Service,
+  width: number,
+  height: number
 ) => (
   bounds: Bounds,
   opts: GetImageURLOpts = { size: 400 }
@@ -160,10 +189,11 @@ export const getRegionURL = (
     return;
   }
 
+  const clampedBounds = clampRegion(bounds, { w: width, h: height });
   const size = normalizeTargetSize(opts.size);
   const regionBounds = size !== 'full' && opts.fit === 'cover'
-    ? getCoverBounds(bounds, size)
-    : bounds;
+    ? getCoverBounds(clampedBounds, size)
+    : clampedBounds;
   const regionParam = toRegionParam(regionBounds);
   return getImageURLFromService(service, regionParam, size, regionBounds, opts.rotation);
 }

@@ -184,6 +184,16 @@ describe('Cozy', () => {
     const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
     expect(regionURL).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/max/0/default.jpg')
+    expect(resource.getRegionURL(
+      { x: -20, y: 10, w: 100, h: 50 },
+      { size: 'full' }
+    )).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/0,10,80,50/max/0/default.jpg')
+    expect(resource.getRegionURL(
+      { x: 4000, y: 3000, w: 100, h: 100 },
+      { size: 'full' }
+    )).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/4000,3000,32,24/max/0/default.jpg')
 
     expect(resource.getImageURL({ size: 'full' })).toBe(
       'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/max/0/default.jpg')
