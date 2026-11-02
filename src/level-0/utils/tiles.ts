@@ -1,7 +1,7 @@
 import type { Bounds, CozyImageInfo, Level0ImageInfo, TileSpec } from '../../types';
 import type { StitchableTile, Tile } from '../types';
 
-export const toURL = (info: CozyImageInfo, region: string, size: string) =>
+const toURL = (info: CozyImageInfo, region: string, size: string) =>
   `${info.id}/${region}/${size}/0/default.jpg`;
 
 const toSize = (info: CozyImageInfo, w: number, h: number) => {
