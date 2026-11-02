@@ -8,7 +8,7 @@ import type {
   Size
 } from '../../types';
 
-const normalizeTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
+export const normalizeTargetSize = (size: GetImageURLOpts['size']): Size | 'full' => {
   if (size === 'full') return size;
 
   const target = typeof size === 'number' ? { w: size, h: size } : size;

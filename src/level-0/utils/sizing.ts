@@ -1,19 +1,9 @@
+import { normalizeTargetSize } from '../../core';
 import type { Bounds, Level0ImageInfo, Size } from '../../types';
 import type { GetLevel0ImageOpts } from '../types';
 
-const normalizeLevel0Size = (size: GetLevel0ImageOpts['size']): Size | 'full' => {
-  if (size === 'full') return size;
-
-  const target = typeof size === 'number' ? { w: size, h: size } : size;
-  if (!Number.isFinite(target.w) || !Number.isFinite(target.h) || target.w <= 0 || target.h <= 0) {
-    throw new RangeError('Level 0 image size dimensions must be finite positive numbers');
-  }
-
-  return target;
-}
-
 export const getLevel0Region = (bounds: Bounds, opts: GetLevel0ImageOpts): Bounds => {
-  const target = normalizeLevel0Size(opts.size);
+  const target = normalizeTargetSize(opts.size);
   if (target === 'full' || opts.fit !== 'cover') return bounds;
 
   const targetAspect = target.w / target.h;
@@ -33,7 +23,7 @@ export const getLevel0OutputSize = (
   opts: GetLevel0ImageOpts,
   availableScale = 1
 ): Size => {
-  const target = normalizeLevel0Size(opts.size);
+  const target = normalizeTargetSize(opts.size);
   if (target === 'full') {
     const scale = Math.min(1, availableScale);
     return {
