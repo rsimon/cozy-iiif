@@ -99,15 +99,9 @@ export interface Size {
 
 }
 
-export interface GetImageURLOpts {
-
-  size: 'full' | number | Size;
-
-  fit?: 'cover' | 'contain';
-
-  rotation?: Rotation;
-
-}
+export type GetImageURLOpts =
+  | { size: 'full'; rotation?: Rotation }
+  | { size: number | Size; fit?: 'cover' | 'contain'; rotation?: Rotation };
 
 export interface RotationOptions {
 
