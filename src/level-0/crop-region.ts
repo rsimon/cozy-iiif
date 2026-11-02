@@ -1,20 +1,12 @@
-import type { Crop, StitchableTile, Tile } from './types';
-import { getFullTiles, getLevel0Tile, getThrottledLoader, toURL } from './utils';
+import type { Crop, StitchableTile } from './types';
+import { getLevel0Tile, getThrottledLoader } from './utils';
+import { clampRegion } from '../core/image/urls';
+import { fetchImageInfo } from '../helpers';
 import type {
   Bounds,
   Level0ImageInfo,
-  Level0ImageServiceResource,
-  TileSpec
+  Level0ImageServiceResource
 } from '../types';
-import { fetchImageInfo } from '../helpers';
-
-const clampRegion = (info: Level0ImageInfo, region: Bounds): Bounds => {
-  const x = Math.min(Math.max(0, region.x), info.width - 1);
-  const y = Math.min(Math.max(0, region.y), info.height - 1);
-  const w = Math.max(1, Math.min(region.w, info.width - x));
-  const h = Math.max(1, Math.min(region.h, info.height - y));
-  return { x, y, w, h };
-}
 
 /**
  * CSS variant: the best single image for the region, plus the crop rectangle
@@ -25,7 +17,7 @@ export const cropRegionFromTile = (
   bounds: Bounds,
   minWidth?: number
 ): Crop | undefined => {
-  const region = clampRegion(info, bounds);
+  const region = clampRegion(bounds, { w: info.width, h: info.height });
 
   const tile = getLevel0Tile(info, region, minWidth ?? region.w);
   if (!tile) return undefined;
@@ -105,7 +97,8 @@ export const cropStitchedRegion = async (
   if (info.type !== 'level0')
     throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
 
-  const tiles = getTilesForRegion(info, bounds);
+  const region = clampRegion(bounds, { w: info.width, h: info.height });
+  const tiles = getTilesForRegion(info, region);
   
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -117,8 +110,8 @@ export const cropStitchedRegion = async (
   const tileWidth = info.tiles[0].width;
   const tileHeight = info.tiles[0].height || info.tiles[0].width;
 
-  const tilesWidth = (Math.ceil(bounds.w / tileWidth) + 1) * tileWidth;
-  const tilesHeight = (Math.ceil(bounds.h / tileHeight) + 1) * tileHeight;
+  const tilesWidth = (Math.ceil(region.w / tileWidth) + 1) * tileWidth;
+  const tilesHeight = (Math.ceil(region.h / tileHeight) + 1) * tileHeight;
 
   canvas.width = tilesWidth;
   canvas.height = tilesHeight;
@@ -128,14 +121,14 @@ export const cropStitchedRegion = async (
   // TODO implement polite harvesting!
   await Promise.all(tiles.map(async (tile) => {
     const img = await loader.loadImage(tile.url);
-    const x = (tile.x * tileWidth) - bounds.x;
-    const y = (tile.y * tileHeight) - bounds.y;
+    const x = (tile.x * tileWidth) - region.x;
+    const y = (tile.y * tileHeight) - region.y;
     ctx.drawImage(img, x, y);
   }));
 
   const cropCanvas = document.createElement('canvas');
-  cropCanvas.width = bounds.w;
-  cropCanvas.height = bounds.h;
+  cropCanvas.width = region.w;
+  cropCanvas.height = region.h;
 
   const cropCtx = cropCanvas.getContext('2d');
   
@@ -144,8 +137,8 @@ export const cropStitchedRegion = async (
 
   // Copy cropped region
   cropCtx.drawImage(canvas, 
-    0, 0, bounds.w, bounds.h,
-    0, 0, bounds.w, bounds.h
+    0, 0, region.w, region.h,
+    0, 0, region.w, region.h
   );
 
   return new Promise((resolve, reject) => {
