@@ -93,6 +93,8 @@ const getIIIFSizeParam = (
 ): string => {
   const widthScale = target.w / bounds.w;
   const heightScale = target.h / bounds.h;
+
+  // Capping the scale 1 prevents upscaling the image!
   const scale = Math.min(widthScale, heightScale, 1);
 
   if (scale === 1) return fullSizeParam;
