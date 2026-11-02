@@ -83,13 +83,13 @@ export interface CozyCanvas {
 
   readonly annotations: AnnotationPage[];
 
-  getImageURL(opts?: GetImageURLOpts): string | undefined;
+  getImageURL(opts?: GetImageURLOpts): string;
 
   getLabel(locale?: string): string;
 
   getMetadata(locale?: string): CozyMetadata[];
 
-  getThumbnailURL(opts?: GetImageURLOpts): string | undefined;
+  getThumbnailURL(opts?: GetImageURLOpts): string;
 
 }
 

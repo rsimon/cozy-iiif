@@ -22,7 +22,7 @@ interface BaseImageResource {
 
   readonly selector?: Bounds;
 
-  getImageURL(opts?: GetImageURLOpts): string | undefined;
+  getImageURL(opts?: GetImageURLOpts): string;
 
 }
 
@@ -48,7 +48,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly profileLevel: number;
 
-  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string | undefined;
+  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string;
 
 }
 
@@ -63,7 +63,6 @@ export interface Level0ImageServiceResource extends BaseImageResource {
   readonly serviceUrl: string;
 
 }
-
 
 export interface ImageRequestOptions {
 

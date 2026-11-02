@@ -157,7 +157,10 @@ export const getImageURL = (
   height: number | undefined, 
   service: Service  
 ) => (opts: GetImageURLOpts = { size: 400 }) => {
-  if (!width || !height) return;
+  if (!width || !height) {
+    console.warn('Undefined image size');
+    return '';
+  }
 
   const size = normalizeTargetSize(opts.size);
   if (size === 'full')
