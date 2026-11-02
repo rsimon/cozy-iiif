@@ -42,22 +42,25 @@ export const parseImageService = (service: Service) => {
   const context = getPropertyValue<string>(service, 'context');
 
   const s = service as ImageService;
+
+  const { width, height } = s;
+
   const p = getPropertyValue<any>(s, 'profile');
   const profileLevel = getProfileLevel(p);
-  
+
   if (t === 'ImageService2' || context?.includes('image/2'))
-    return { majorVersion: 2, profileLevel };
+    return { majorVersion: 2, profileLevel, width, height };
   
   if (t === 'ImageService3' || context?.includes('image/3'))
-    return { majorVersion: 3, profileLevel };
+    return { majorVersion: 3, profileLevel, width, height };
 
   // Fallback / future-proofing for newer contexts (e.g., image/4)
   if (context?.includes('image/')) {
     const match = context.match(/image\/(\d+)/);
     const majorVersion = match ? parseInt(match[1], 10) : 3;
-    return { majorVersion, profileLevel };
+    return { majorVersion, profileLevel, width, height };
   }
 
-  return { majorVersion: 3, profileLevel };
+  return { majorVersion: 3, profileLevel, width, height };
 }
 

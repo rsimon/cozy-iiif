@@ -29,6 +29,7 @@ export const parseImageResource = (
   
   const selector = resource.type === 'SpecificResource' ? parseRegion(resource.selector) : undefined;
 
+  // Note that `width` and `height` are both optional on the image resource!
   const { format, height, width } = image;
 
   const id = getPropertyValue(resource, 'id');
@@ -44,8 +45,8 @@ export const parseImageResource = (
       source: resource,
       type: service.profileLevel === 0 ? 'level0' : 'dynamic',
       service: imageService,
-      width,
-      height,
+      width: width || service.width,
+      height: height || service.height,
       majorVersion: service.majorVersion,
       serviceUrl,
       target,
