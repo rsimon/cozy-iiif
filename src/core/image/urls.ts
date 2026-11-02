@@ -190,10 +190,14 @@ export const getRegionURL = (
   }
 
   const clampedBounds = clampRegion(bounds, { w: width, h: height });
+
   const size = normalizeTargetSize(opts.size);
+
   const regionBounds = size !== 'full' && opts.fit === 'cover'
     ? getCoverBounds(clampedBounds, size)
     : clampedBounds;
+  
   const regionParam = toRegionParam(regionBounds);
+  
   return getImageURLFromService(service, regionParam, size, regionBounds, opts.rotation);
 }
