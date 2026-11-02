@@ -36,7 +36,7 @@ if (parsed.type === 'manifest') {
   const image = parsed.resource; // CozyImageResource
   console.log(`Image API ${image.majorVersion}`);
 } else if (parsed.type === 'plain-image') {
-  console.log('Plaing (JPEG or PNG) image');
+  console.log('Plain (JPEG or PNG) image');
 } else if (parsed.type === 'webpage') {
   console.log('URL points to a web page!');
 } else if (parsed.type === 'error') {
@@ -67,7 +67,7 @@ console.log(manifest.getLabel());
 // For locale (with fallback)
 console.log(manifest.getLabel('de'));
 
-// Metadata as normalized CozyMetada[]
+// Metadata as normalized CozyMetadata[]
 console.log(manifest.getMetadata());
 
 // The raw source data, @iiif/presentation-3 typed
@@ -83,11 +83,11 @@ otherwise.
 ```ts
 const firstCanvas = manifest.canvases[0];
 
-// With default size (400px smallest dimension)
+// With default target size (400x400, contain)
 console.log(firstCanvas.getThumbnailURL());
 
-// With custom minimum smallest dimension
-console.log(firstCanvas.getThumbnailURL(600));
+// With custom target size and fit
+console.log(firstCanvas.getThumbnailURL({ size: 600, fit: 'cover' }));
 ```
 
 ### Table of Contents Helper
@@ -104,7 +104,7 @@ const logTOCNode = (node: CozyTOCNode) => {
   node.children.forEach(logTOCNode);
 }
     
-root.forEach(logTOCNode.root);
+toc.root.forEach(logTOCNode);
 ```
 
 ### Image Types and Levels
@@ -119,24 +119,35 @@ const image = firstCanvas.images[0];
 console.log(image.type); // 'static', 'dynamic' or 'level0';
 ```
 
-Dynamic images are served from an image server and have helpers to retrieve specific region URLs.
+### Retrieving Images and Regions
+
+Dynamic images are served from an image server, and have helpers for retrieving image- or region-URLs to suit specific size requirements. The API is inspired by the CSS [object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) concept:
+
+- **contain** will fit the image into a specified bounding box. width and height are equal or smaller than the specified bounds.
+- **cover** will fill the specified bounding box, cropping the image around the center
+
+The default target size is 400px x 400px; the default fit is **contain**.
 
 ```ts
+// The target region in the IIIF image
 const bounds = {
   x: 100,
   y: 100,
-  w: 320,
-  h: 240
+  w: 800,
+  h: 400
 };
 
-// With default minimum shortest dimension (400px);
+// Default: fit the target region into a default square of 400px. 
+// The returned image will be: w=400px, h=200px
 console.log(image.getRegionURL(bounds));
 
-// With custom minimum shortest dimension and 0 rotation
-console.log(image.getRegionURL(bounds, 0, { minSize: 800 }));
+// Fit the target region into a 300x300 square, with center-crop.
+// The returned image will be 300x300px, region will be cropped from 
+// the original 800x400 to 400x400 (clipping of 200px left/right)
+console.log(image.getRegionURL(bounds, { size: 300, fit: 'cover' }));
 
-// Full image with custom minimum shorted dimension
-console.log(image.getImageURL(800));
+// Request the original resolution
+console.log(image.getImageURL({ size: 'full' }));
 
 // Resolves the actual image pixel size from the info.json
 // or the image file (which may **differ**) from the canvas size!
@@ -145,52 +156,23 @@ console.log(image.getPixelSize());
 
 ## Level 0 Utilities
 
-Working with a Level 0 tileset, but need a thumbnail, or crop a region? The `cozy-iiif/level-0` module 
-has you covered! Cozy uses Web workers for background image processing and request throttling when 
-harvesting tilesets for stitching. Stitched images are harvested at the smallest possible size, 
-to keep things fast and prevent unnecessary downloads.
-
-**Thumbnails**
+The `cozy-iiif/level-0` module can stitch Level 0 tiles into a thumbnail or region image:
 
 ```ts
-import { getThumbnail } from 'cozy-iiif/level-0';
+import { getStitchedThumbnail, cropStitchedRegion } from 'cozy-iiif/level-0';
 
 const firstImage = canvas.images[0];
-if (firstImage.type !== 'level0') {
-  // Normal thumbnail URL (string)
-  console.log(canvas.getThumbnailURL());
-} else {
-  getThumbnail(firstImage).then(blob => {
-    // Creates a data URL you can use as `src` for an image
-    console.log(URL.createObjectURL(blob));
-  });
-}
-```
-
-**Regions**
-
-```ts
-import { cropRegion } from 'cozy-iiif/level-0';
-
-const firstImage = canvas.images[0];
-
-const bounds = {
-  x: 100,
-  y: 100,
-  w: 320,
-  h: 240
-};
 
 if (firstImage.type === 'level0') {
-  cropRegion(firstImage, bounds).then(blob => {
-    console.log(URL.createObjectURL(blob));
-  });
+  const thumbnail = await getStitchedThumbnail(firstImage);
+  const region = await cropStitchedRegion(firstImage, { x: 100, y: 100, w: 320, h: 240 });
+  console.log(URL.createObjectURL(thumbnail), URL.createObjectURL(region));
 }
 ```
 
 ## Cozy Annotation Helpers
 
-Utilities for working with annotations on on Canvases.
+Utilities for working with annotations on Canvases.
 
 **Fetch Annotations on Canvas**
 

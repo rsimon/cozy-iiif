@@ -53,6 +53,12 @@ describe('Cozy', () => {
 
     const [fullSizeImage, positionedImage] = canvas.images;
     expect(fullSizeImage.target).toBeUndefined();
+    expect(fullSizeImage.getImageURL({ size: 'full' })).toBe(
+      'https://iiif.bodleian.ox.ac.uk/iiif/image/79bf8325-22fa-4696-afe5-7d827d84f393/full/full/0/default.jpg')
+    expect(canvas.getThumbnailURL()).toBe(
+      'https://iiif.bodleian.ox.ac.uk/iiif/image/79bf8325-22fa-4696-afe5-7d827d84f393/full/,400/0/default.jpg')
+    expect(canvas.getThumbnailURL({ size: 600, rotation: 90 })).toBe(
+      'https://iiif.bodleian.ox.ac.uk/iiif/image/79bf8325-22fa-4696-afe5-7d827d84f393/full/,600/90/default.jpg')
 
     expect(positionedImage.target).toBeDefined();
     expect(positionedImage.target?.x).toBe(1307);
@@ -73,6 +79,8 @@ describe('Cozy', () => {
 
     const image = images[0];
     expect(image.type).toBe('level0');
+    expect(image.getImageURL({ size: 'full' })).toBe(
+      'https://example.org/iiif/image/full/max/0/default.jpg')
   })
 
    it('should parse a v3 manifest correctly (incl. cropped images)', () => {
@@ -165,13 +173,31 @@ describe('Cozy', () => {
     expect(tiles.width).toBe(512);
     expect(tiles.scaleFactors.length).toBe(3);
 
-    const imageURL = resource.getImageURL(800);
+    const defaultImageURL = resource.getImageURL();
+    expect(defaultImageURL).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/400,/0/default.jpg')
+
+    const imageURL = resource.getImageURL({ size: 800 });
     expect(imageURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/!600,800/0/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/800,/0/default.jpg')
 
     const regionURL = resource.getRegionURL({ x: 10, y: 10, w: 100, h: 100 });
     expect(regionURL).toBe(
-      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/!400,400/0/default.jpg')
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/10,10,100,100/max/0/default.jpg')
+
+    expect(resource.getImageURL({ size: 'full' })).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/max/0/default.jpg')
+    expect(resource.getImageURL({ size: { w: 800, h: 600 }, fit: 'contain' })).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/800,/0/default.jpg')
+    expect(resource.getImageURL({ size: { w: 1200, h: 800 }, fit: 'contain' })).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/full/,800/0/default.jpg')
+    expect(resource.getImageURL({ size: 800, fit: 'cover', rotation: 90 })).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/504,0,3024,3024/800,/90/default.jpg')
+    expect(resource.getRegionURL(
+      { x: 10, y: 10, w: 100, h: 50 },
+      { size: 100, fit: 'cover', rotation: 90 }
+    )).toBe(
+      'https://iiif.io/api/image/3.0/example/reference/918ecd18c2592080851777620de9bcb5-gottingen/35,10,50,50/max/90/default.jpg')
   });
 
   it('should parse a canvas resource with a SpecificResource annotation correctly', () => {
@@ -183,4 +209,3 @@ describe('Cozy', () => {
   });
 
 });
-

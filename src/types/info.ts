@@ -1,5 +1,5 @@
 import type { IIIFExternalWebResource } from '@iiif/parser';
-import type { Bounds, GetRegionURLOpts, Rotation } from './image';
+import type { Bounds, GetImageURLOpts } from './image';
 
 export type CozyImageInfo = 
   | Level0ImageInfo
@@ -19,17 +19,17 @@ interface BaseImageInfo {
 
   readonly tiles: TileSpec[];
 
-  readonly sizes: Size[];
+  readonly sizes: TileSize[];
 
   readonly serviceUrl: string;
 
   readonly source: IIIFExternalWebResource;
 
-  getImageURL(minSize?: number, rotation?: Rotation): string;
+  getImageURL(opts?: GetImageURLOpts): string | undefined;
 
 }
 
-export interface Size {
+export interface TileSize {
 
   width: number;
 
@@ -37,7 +37,7 @@ export interface Size {
 
 }
 
-export interface TileSpec extends Size {
+export interface TileSpec extends TileSize {
 
   scaleFactors: number[];
   
@@ -54,9 +54,7 @@ export interface DynamicImageInfo extends BaseImageInfo {
 
   readonly type: 'dynamic';
 
-  getRegionURL(bounds: Bounds, rotation?: Rotation, opts?: GetRegionURLOpts): string;
+  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string | undefined;
 
 }
-
-
 

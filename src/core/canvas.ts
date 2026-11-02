@@ -1,11 +1,10 @@
 import type { Canvas, IIIFExternalWebResource, SpecificResource } from '@iiif/presentation-3';
 import { Traverse, type AnyMotivation } from '@iiif/parser';
-import type { CozyCanvas, CozyImageResource } from '../types';
+import type { CozyCanvas, CozyImageResource, GetImageURLOpts } from '../types';
 import { getLabel, getMetadata } from './resource';
 import { parseTarget } from './selector';
 import { 
   getImageURL,
-  getMinSizeDimensions, 
   isImageService,
   parseImageResource
  } from './image';
@@ -72,11 +71,9 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
 export const getThumbnailURL = (
   canvas: Canvas, 
   images: CozyImageResource[] = getImages(canvas)
-) => (minSize = 400): string | undefined => {
+) => (opts: GetImageURLOpts = { size: 400 }): string | undefined => {
   const { width, height } = canvas;
   if (!width || !height) return;
-
-  const { w, h } = getMinSizeDimensions(width, height, minSize);
 
   if (canvas.thumbnail && canvas.thumbnail.length > 0) {
     const thumbnail = canvas.thumbnail[0];
@@ -84,7 +81,7 @@ export const getThumbnailURL = (
     if ('service' in thumbnail && Array.isArray(thumbnail.service)) {
       const service = thumbnail.service.find(s => isImageService(s));
       if (service)
-        return getImageURL(w, h, service)();
+        return getImageURL(width, height, service)(opts);
     }
 
     if ('id' in thumbnail) return thumbnail.id;
@@ -92,10 +89,9 @@ export const getThumbnailURL = (
 
   for (const image of images) {
     if (image.type === 'dynamic' || image.type === 'level0') {
-      return getImageURL(w, h, image.service)();
+      return image.getImageURL(opts);
     } else if (image.type === 'static') {
       return image.url;
     }    
   }
 }
-

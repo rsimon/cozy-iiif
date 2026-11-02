@@ -1,5 +1,5 @@
 import type { AnnotationPage, Canvas, Collection, Manifest, Range } from '@iiif/presentation-3';
-import type { CozyImageResource, Rotation } from './image';
+import type { CozyImageResource, GetImageURLOpts } from './image';
 
 export interface CozyCollection {
 
@@ -83,13 +83,13 @@ export interface CozyCanvas {
 
   readonly annotations: AnnotationPage[];
 
-  getImageURL(minSize?: number, rotation?: Rotation): string;
+  getImageURL(opts?: GetImageURLOpts): string | undefined;
 
   getLabel(locale?: string): string;
 
   getMetadata(locale?: string): CozyMetadata[];
 
-  getThumbnailURL(minSize?: number): string;
+  getThumbnailURL(opts?: GetImageURLOpts): string | undefined;
 
 }
 

@@ -1,5 +1,4 @@
 import type { IIIFExternalWebResource, Service } from '@iiif/presentation-3';
-import type { Size } from './info';
 
 export type CozyImageResource = 
   | StaticImageResource 
@@ -23,7 +22,7 @@ interface BaseImageResource {
 
   readonly selector?: Bounds;
 
-  getImageURL(minSize?: number, rotation?: Rotation): string;
+  getImageURL(opts?: GetImageURLOpts): string | undefined;
 
 }
 
@@ -49,7 +48,7 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly profileLevel: number;
 
-  getRegionURL(bounds: Bounds, rotation?: Rotation, opts?: GetRegionURLOpts): string;
+  getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string | undefined;
 
 }
 
@@ -91,11 +90,21 @@ export interface Bounds {
 
 }
 
-export interface GetRegionURLOpts {
+export interface Size {
 
-  minSize?: number;
+  w: number;
 
-  maxSize?: number;
+  h: number;
+
+}
+
+export interface GetImageURLOpts {
+
+  size: 'full' | number | Size;
+
+  fit?: 'cover' | 'contain';
+
+  rotation?: Rotation;
 
 }
 

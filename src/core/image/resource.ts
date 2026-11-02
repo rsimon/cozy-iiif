@@ -85,7 +85,7 @@ const getStaticImagePixelSize = (url: string) => (): Promise<Size> => {
       return createImageBitmap(blob).then(bitmap => {
         const { width, height } = bitmap;
         bitmap.close(); 
-        return { width, height }
+        return { w: width, h: height }
       });
     } else {
       throw new Error('Not implemented');
