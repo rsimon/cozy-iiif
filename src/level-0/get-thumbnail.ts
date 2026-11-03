@@ -11,7 +11,16 @@ import {
 } from './utils';
 
 /**
- * Returns a tile and crop rectangle for displaying a Level 0 thumbnail.
+ * Returns a single Level 0 tile suitable for displaying as a thumbnail
+ * in the requested size. (Default: 400x400 px, `contain` fit mode.) 
+ * 
+ * The result includes a `crop` region, which will be equal to the px size 
+ * of the tile if the thumbnail was requested in `contain` mode. If the
+ * thumbnail was requested in `cover` mode, the crop region will represent
+ * the corresponding center-crop.
+ * 
+ * Use this function is you want a simple thumbnail based on a single
+ * Level 0 tile (optionally clip-able to the crop region via CSS).
  */
 export const getThumbnailTile = (
   info: Level0ImageInfo,
@@ -23,6 +32,16 @@ export const getThumbnailTile = (
   h: info.height
 }, opts);
 
+/**
+ * Returns a thumbnail image as a Blob. The thumbnail will be
+ * sized and cropped according to the `size` and `fit` arguments,
+ * and assembled by stitching, cropping and resizing mulitple 
+ * Level 0 tiles if necessary.
+ * 
+ * Use this function if you need a high-resolution thumbnail, or
+ * a file-based thumbnail ready for export or download without
+ * the need for CSS masking.
+ */
 export const getStitchedThumbnail = async (
   source: Level0ImageInfo | Level0ImageServiceResource,
   opts: GetLevel0ImageOpts = { size: 400 }
@@ -37,19 +56,29 @@ export const getStitchedThumbnail = async (
     throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
 
   const imageSize = { w: info.width, h: info.height };
+
   const region = fitRegion({
     x: 0,
     y: 0,
-    w: info.width,
-    h: info.height
+    w: imageSize.w,
+    h: imageSize.h
   }, imageSize, opts);
 
-  // No need to fetch full size if not necessary 
-  const desiredSize = calculateRenderedSize(region, opts);
-
+  // Ideal output size: the region scaled down to fit the 
+  // requested size (aspect ratio preserved), but never larger
+  // than the region's native pixel size (no upscaling). 
+  const renderedSize = calculateRenderedSize(region, opts);
   
-  const scaleFactor = getLevel0ScaleFactor(info, region, desiredSize);
+  // Lowest-resolution available scale factor that still delivers
+  // at least the resolution needed for renderedSize. If the server
+  // has nothing high-res enough, falls back to the highest-res
+  // factor.
+  const scaleFactor = getLevel0ScaleFactor(info, region, renderedSize);
+
+  // Actual output size. Equals renderedSize unless the the fallback
+  // was hit in `getLevel0ScaleFactor`.
   const outputSize = calculateRenderedSize(region, opts, 1 / scaleFactor);
+
   const tiles = getLevel0TilesForRegion(info, region, scaleFactor);
 
   const canvas = document.createElement('canvas');

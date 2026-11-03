@@ -1,5 +1,12 @@
-import type { Bounds, CozyImageInfo, Level0ImageInfo, Size, TileSpec } from '../../types';
-import type { StitchableTile, Tile } from '../types';
+import { clampRegion, normalizeTargetSize } from '../../core';
+import type { GetLevel0ImageOpts, StitchableTile, Tile } from '../types';
+import type { 
+  Bounds, 
+  CozyImageInfo, 
+  Level0ImageInfo, 
+  Size, 
+  TileSpec 
+} from '../../types';
 
 const toURL = (info: CozyImageInfo, region: string, size: string) =>
   `${info.id}/${region}/${size}/0/default.jpg`;
@@ -13,8 +20,59 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 }
 
 /**
- * Returns the best-matching available Level 0 scale factor for the given
- * resolution: requested region vs. requested output size.
+ * Clamps the `bounds` to the `imageSize`, then applies center-cropping
+ * in case `cover` is requested.
+ */
+export const fitRegion = (
+  bounds: Bounds,
+  imageSize: Size,
+  opts: GetLevel0ImageOpts
+): Bounds => {
+  const clampedBounds = clampRegion(bounds, imageSize);
+  const target = normalizeTargetSize(opts.size);
+  if (target === 'full' || opts.fit !== 'cover') return clampedBounds;
+
+  const targetAspect = target.w / target.h;
+  const sourceAspect = clampedBounds.w / clampedBounds.h;
+
+  if (sourceAspect > targetAspect) {
+    const w = Math.max(1, Math.floor(clampedBounds.h * targetAspect));
+    return { ...clampedBounds, x: clampedBounds.x + Math.floor((clampedBounds.w - w) / 2), w };
+  }
+
+  const h = Math.max(1, Math.floor(clampedBounds.w / targetAspect));
+  return { ...clampedBounds, y: clampedBounds.y + Math.floor((clampedBounds.h - h) / 2), h };
+}
+
+/**
+ * Calculates rendered dimensions without upscaling. 
+ */
+export const calculateRenderedSize = (
+  bounds: Bounds,
+  opts: GetLevel0ImageOpts,
+  availableScale = 1
+): Size => {
+  const target = normalizeTargetSize(opts.size);
+
+  if (target === 'full') {
+    const scale = Math.min(1, availableScale);
+    return {
+      w: Math.max(1, Math.floor(bounds.w * scale)),
+      h: Math.max(1, Math.floor(bounds.h * scale))
+    };
+  }
+
+  const scale = Math.min(target.w / bounds.w, target.h / bounds.h, 1, availableScale);
+  return {
+    w: Math.max(1, Math.floor(bounds.w * scale)),
+    h: Math.max(1, Math.floor(bounds.h * scale))
+  };
+}
+
+/**
+ * Returns the best-matching available Level 0 scale factor for the
+ * given resolution (always higher-res or equal than requested - unless
+ * the server doesn't provide it.)
  */
 export const getLevel0ScaleFactor = (
   info: Level0ImageInfo,
@@ -22,9 +80,9 @@ export const getLevel0ScaleFactor = (
   outputSize: Size
 ): number => {
   const scaleFactors = info.tiles[0]?.scaleFactors;
-  if (!scaleFactors?.length) {
+
+  if (!scaleFactors?.length)
     throw new Error(`No tile scale factors available for Level 0 image ${info.id}`);
-  }
 
   const requiredDownscale = Math.max(region.w / outputSize.w, region.h / outputSize.h);
   const sorted = [...scaleFactors].sort((a, b) => b - a);
