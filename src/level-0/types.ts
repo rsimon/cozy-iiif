@@ -16,7 +16,7 @@ export interface Tile {
 
   height: number;
 
-  region: Bounds
+  region: Bounds;
 
 }
 
