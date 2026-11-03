@@ -1,7 +1,7 @@
 import { fetchImageInfo } from '../helpers';
 import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import { cropRegionFromTile } from './crop-region';
-import type { Crop, GetLevel0ImageOpts } from './types';
+import type { CroppedTile, GetLevel0ImageOpts } from './types';
 import {
   calculateRenderedSize,
   fitRegion,
@@ -16,7 +16,7 @@ import {
 export const getThumbnailTile = (
   info: Level0ImageInfo,
   opts: GetLevel0ImageOpts = { size: 400 }
-): Crop => cropRegionFromTile(info, {
+): CroppedTile => cropRegionFromTile(info, {
   x: 0,
   y: 0,
   w: info.width,

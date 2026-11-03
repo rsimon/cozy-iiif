@@ -1,6 +1,6 @@
 
 import { fetchImageInfo } from '../helpers';
-import type { Crop, GetLevel0ImageOpts } from './types';
+import type { CroppedTile, GetLevel0ImageOpts } from './types';
 import type {
   Bounds,
   Level0ImageInfo,
@@ -23,7 +23,7 @@ export const cropRegionFromTile = (
   info: Level0ImageInfo,
   bounds: Bounds,
   opts: GetLevel0ImageOpts = { size: 'full' }
-): Crop => {
+): CroppedTile => {
   const imageSize = { w: info.width, h: info.height };
   const region = fitRegion(bounds, imageSize, opts);
   const outputSize = calculateRenderedSize(region, opts);
@@ -35,7 +35,7 @@ export const cropRegionFromTile = (
   const sy = tile.height / tile.region.h;
 
   return {
-    tile,
+    ...tile,
     crop: {
       x: (region.x - tile.region.x) * sx,
       y: (region.y - tile.region.y) * sy,

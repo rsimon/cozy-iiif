@@ -32,9 +32,7 @@ export interface StitchableTile extends Omit<Tile, 'region'> {
 
 }
 
-export interface Crop {
-
-  tile: Tile;
+export interface CroppedTile extends Tile {
 
   crop: Bounds;
 
