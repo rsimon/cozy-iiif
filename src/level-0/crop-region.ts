@@ -1,11 +1,7 @@
 
 import { fetchImageInfo } from '../helpers';
 import type { CroppedTile, GetLevel0ImageOpts } from './types';
-import type {
-  Bounds,
-  Level0ImageInfo,
-  Level0ImageServiceResource
-} from '../types';
+import type { Bounds, Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import {
   getLevel0Tile,
   getLevel0TilesForRegion,
@@ -16,8 +12,13 @@ import {
 } from './utils';
 
 /**
- * CSS variant: the best single image for the region, plus the crop rectangle
- * (in that image's pixels) that the consuming app should show.
+ * Returns a single Level 0 image tile that matches the requested `bounds`,
+ * plus a `crop` rectangle (in that tile's pixel coordinate space) that 
+ * the consuming app should clip the tile to, in order to display the 
+ * requested region exactly.
+ * 
+ * Use this function if you want a simple crop based on a single
+ * Level 0 tile and (for example) as CSS clip.
  */
 export const cropRegionFromTile = (
   info: Level0ImageInfo,
@@ -25,7 +26,12 @@ export const cropRegionFromTile = (
   opts: GetLevel0ImageOpts = { size: 'full' }
 ): CroppedTile => {
   const imageSize = { w: info.width, h: info.height };
+
   const region = fitRegion(bounds, imageSize, opts);
+
+  // The requested region, scaled down to the requested 
+  // size (aspect ratio preserved), but never larger
+  // than the region's native pixel size (no upscaling). 
   const outputSize = calculateRenderedSize(region, opts);
 
   const tile = getLevel0Tile(info, region, outputSize);
@@ -46,8 +52,12 @@ export const cropRegionFromTile = (
 }
 
 /**
- * Canvas variant: renders a region at the requested size, stitching tiles if needed.
- * Defaults to native resolution without upscaling.
+ * Returns a cropped region as an image Blob at the requested size.
+ * The image will be stitched from multiple Level 0 tiles if needed.
+ * 
+ * Use this function if you need a high-resolution crop, or binary
+ * image data ready for export or download without the need for CSS 
+ * masking.
  */
 export const cropStitchedRegion = async (
   source: Level0ImageInfo | Level0ImageServiceResource, 
@@ -65,16 +75,28 @@ export const cropStitchedRegion = async (
 
   const imageSize = { w: info.width, h: info.height };
   const region = fitRegion(bounds, imageSize, opts);
-  const desiredSize = calculateRenderedSize(region, opts);
-  const scaleFactor = getLevel0ScaleFactor(info, region, desiredSize);
+
+  // Ideal output size: the crop scaled down to fit the 
+  // requested size (aspect ratio preserved), but never larger
+  // than the region's native pixel size (no upscaling). 
+  const renderedSize = calculateRenderedSize(region, opts);
+
+  // Lowest-resolution available scale factor that still delivers
+  // at least the resolution needed for renderedSize. If the server
+  // has nothing high-res enough, falls back to the highest-res
+  // factor.
+  const scaleFactor = getLevel0ScaleFactor(info, region, renderedSize);
+  
+  // Actual output size. Equals renderedSize unless the the fallback
+  // was hit in `getLevel0ScaleFactor`.
   const outputSize = calculateRenderedSize(region, opts, 1 / scaleFactor);
+  
   const tiles = getLevel0TilesForRegion(info, region, scaleFactor);
   
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   
   if (!ctx)
-    // Should never happen
     throw new Error('Error initializing canvas context');
   
   const tilesWidth = Math.ceil(region.w / scaleFactor);
@@ -85,7 +107,6 @@ export const cropStitchedRegion = async (
 
   const loader = getThrottledLoader({ callsPerSecond: 20 });
 
-  // TODO implement polite harvesting!
   await Promise.all(tiles.map(async (tile) => {
     const img = await loader.loadImage(tile.url);
     const x = tile.x - (region.x / scaleFactor);
@@ -102,7 +123,7 @@ export const cropStitchedRegion = async (
   if (!cropCtx)
     throw new Error('Error initializing canvas context');
 
-  // Copy cropped region
+  // Draw cropped region
   cropCtx.drawImage(canvas,
     0, 0, region.w / scaleFactor, region.h / scaleFactor,
     0, 0, outputSize.w, outputSize.h
@@ -118,7 +139,7 @@ export const cropStitchedRegion = async (
         }
       },
       'image/jpeg',
-      0.95
+      0.9
     );
   });
 

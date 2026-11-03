@@ -19,7 +19,7 @@ import {
  * thumbnail was requested in `cover` mode, the crop region will represent
  * the corresponding center-crop.
  * 
- * Use this function is you want a simple thumbnail based on a single
+ * Use this function if you want a simple thumbnail based on a single
  * Level 0 tile (optionally clip-able to the crop region via CSS).
  */
 export const getThumbnailTile = (
@@ -39,7 +39,7 @@ export const getThumbnailTile = (
  * Level 0 tiles if necessary.
  * 
  * Use this function if you need a high-resolution thumbnail, or
- * a file-based thumbnail ready for export or download without
+ * binary image data ready for export or download without
  * the need for CSS masking.
  */
 export const getStitchedThumbnail = async (
@@ -90,6 +90,7 @@ export const getStitchedThumbnail = async (
     throw new Error('Error creating canvas context');
 
   const loader = getThrottledLoader();
+
   await Promise.all(tiles.map(async tile => {
     const img = await loader.loadImage(tile.url);
     ctx.drawImage(
@@ -123,6 +124,6 @@ export const getStitchedThumbnail = async (
     output.toBlob(blob => {
       if (blob) resolve(blob);
       else reject(new Error('Failed to create blob'));
-    }, 'image/jpeg', 0.85);
+    }, 'image/jpeg', 0.9);
   });
 }
