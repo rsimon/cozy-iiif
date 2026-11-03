@@ -218,7 +218,7 @@ const getLevel0TileForScale = (
     height: sizeH,
     region: { x, y, w, h }
   };
-};
+}
 
 /**
  * Picks a single image (a size listed in `info.sizes`, or a single tile
@@ -233,7 +233,7 @@ export const getLevel0Tile = (
   info: Level0ImageInfo,
   region: Bounds,
   size: Size
-): Tile | undefined => {
+): Tile => {
   const tileSources = info.tiles.flatMap((tile) =>
     tile.scaleFactors.map(sf => getLevel0TileForScale(info, tile, sf, region))
   );

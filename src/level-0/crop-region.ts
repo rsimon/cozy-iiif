@@ -35,7 +35,6 @@ export const cropRegionFromTile = (
   const outputSize = calculateRenderedSize(region, opts);
 
   const tile = getLevel0Tile(info, region, outputSize);
-  if (!tile) throw new Error(`No usable tile found for Level 0 image ${info.id}`);
 
   const sx = tile.width / tile.region.w;
   const sy = tile.height / tile.region.h;
