@@ -2,13 +2,7 @@ import { fetchImageInfo } from '../helpers';
 import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import { cropRegionFromTile } from './crop-region';
 import type { CroppedTile, GetLevel0ImageOpts } from './types';
-import {
-  calculateRenderedSize,
-  fitRegion,
-  getLevel0ScaleFactor,
-  getLevel0TilesForRegion,
-  getThrottledLoader
-} from './utils';
+import { fitRegion, stitchRegionToBlob } from './utils';
 
 /**
  * Returns a single Level 0 tile suitable for displaying as a thumbnail
@@ -64,66 +58,5 @@ export const getStitchedThumbnail = async (
     h: imageSize.h
   }, imageSize, opts);
 
-  // Ideal output size: the region scaled down to fit the 
-  // requested size (aspect ratio preserved), but never larger
-  // than the region's native pixel size (no upscaling). 
-  const renderedSize = calculateRenderedSize(region, opts);
-  
-  // Lowest-resolution available scale factor that still delivers
-  // at least the resolution needed for renderedSize. If the server
-  // has nothing high-res enough, falls back to the highest-res
-  // factor.
-  const scaleFactor = getLevel0ScaleFactor(info, region, renderedSize);
-
-  // Actual output size. Equals renderedSize unless the the fallback
-  // was hit in `getLevel0ScaleFactor`.
-  const outputSize = calculateRenderedSize(region, opts, 1 / scaleFactor);
-
-  const tiles = getLevel0TilesForRegion(info, region, scaleFactor);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.ceil(region.w / scaleFactor);
-  canvas.height = Math.ceil(region.h / scaleFactor);
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx)
-    throw new Error('Error creating canvas context');
-
-  const loader = getThrottledLoader();
-
-  await Promise.all(tiles.map(async tile => {
-    const img = await loader.loadImage(tile.url);
-    ctx.drawImage(
-      img,
-      tile.x - region.x / scaleFactor,
-      tile.y - region.y / scaleFactor
-    );
-  }));
-
-  const output = document.createElement('canvas');
-  output.width = outputSize.w;
-  output.height = outputSize.h;
-
-  const outputContext = output.getContext('2d');
-  if (!outputContext)
-    throw new Error('Error creating canvas context');
-
-  outputContext.drawImage(
-    canvas,
-    0,
-    0,
-    region.w / scaleFactor,
-    region.h / scaleFactor,
-    0,
-    0,
-    outputSize.w,
-    outputSize.h
-  );
-
-  return new Promise((resolve, reject) => {
-    output.toBlob(blob => {
-      if (blob) resolve(blob);
-      else reject(new Error('Failed to create blob'));
-    }, 'image/jpeg', 0.9);
-  });
+  return stitchRegionToBlob(info, region, opts);
 }
