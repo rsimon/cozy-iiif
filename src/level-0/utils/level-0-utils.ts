@@ -20,6 +20,22 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 }
 
 /**
+ * Builds the URL for a single tile. A tile covering the whole image is
+ * requested as `full` (with the version-specific size keyword); any other
+ * tile uses an explicit region and a `w,` size, which is the form Level 0
+ * tile generators write.
+ */
+const toTileURL = (info: CozyImageInfo, region: Bounds, w: number, h: number) => {
+  const coversImage =
+    region.x === 0 && region.y === 0 &&
+    region.w === info.width && region.h === info.height;
+
+  return coversImage
+    ? toURL(info, 'full', toSize(info, w, h))
+    : toURL(info, `${region.x},${region.y},${region.w},${region.h}`, `${w},`);
+}
+
+/**
  * Clamps the `bounds` to the `imageSize`, then applies center-cropping
  * in case `cover` is requested.
  */
@@ -84,7 +100,7 @@ export const getLevel0ScaleFactor = (
   region: Bounds,
   outputSize: Size
 ): number => {
-  const scaleFactors = info.tiles[0]?.scaleFactors;
+  const scaleFactors = info.tiles.flatMap(t => t.scaleFactors);
 
   if (!scaleFactors?.length)
     throw new Error(`No tile scale factors available for Level 0 image ${info.id}`);
@@ -121,8 +137,10 @@ export const getLevel0TilesForRegion = (
   bounds: Bounds,
   scaleFactor: number
 ): StitchableTile[] => {
-  const tileWidth = info.tiles[0]?.width;
-  const tileHeight = info.tiles[0]?.height || tileWidth;
+  const spec = info.tiles.find(t => t.scaleFactors.includes(scaleFactor));
+  const tileWidth = spec?.width;
+  const tileHeight = spec?.height || tileWidth;
+
   if (!tileWidth || !tileHeight || !Number.isFinite(scaleFactor) || scaleFactor <= 0) {
     throw new Error(`Invalid tile specification for Level 0 image ${info.id}`);
   }
@@ -151,10 +169,11 @@ export const getLevel0TilesForRegion = (
         y: y * tileHeight,
         width,
         height,
-        url: toURL(
+        url: toTileURL(
           info,
-          `${sourceX},${sourceY},${sourceWidth},${sourceHeight}`,
-          `${width},`
+          { x: sourceX, y: sourceY, w: sourceWidth, h: sourceHeight },
+          width,
+          height
         )
       });
     }
@@ -189,16 +208,6 @@ const getLevel0TileForScale = (
   const levelW = Math.ceil(info.width / scaleFactor);
   const levelH = Math.ceil(info.height / scaleFactor);
 
-  // If the whole image fits into one tile, request the whole img at this level
-  if (levelW < tile.width && levelH < tile.height) {
-    return {
-      url: toURL(info, 'full', toSize(info, levelW, levelH)),
-      width: levelW,
-      height: levelH,
-      region: { x: 0, y: 0, w: info.width, h: info.height }
-    };
-  }
-
   const x = col * spanW;
   const y = row * spanH;
   const w = Math.min(spanW, info.width - x);
@@ -207,13 +216,8 @@ const getLevel0TileForScale = (
   const sizeW = Math.min(tile.width, levelW - col * tile.width);
   const sizeH = Math.min(tile.height, levelH - row * tile.height);
 
-  const regionParam = x === 0 && y === 0 && w === info.width && h === info.height
-    ? 'full' : `${x},${y},${w},${h}`;
-
-  const size = toSize(info, sizeW, sizeH);
-
   return {
-    url: toURL(info, regionParam, size),
+    url: toTileURL(info, { x, y, w, h }, sizeW, sizeH),
     width: sizeW,
     height: sizeH,
     region: { x, y, w, h }
@@ -284,7 +288,7 @@ export const getLevel0Tile = (
   const isV2 = info.majorVersion === 2;
   
   return {
-    url: toURL(info, 'full', isV2 ? 'full' : 'max'),
+    url: toURL(info, 'full', toSize(info, info.width, info.height)),
     width: info.width,
     height: info.height,
     region: { x: 0, y: 0, w: info.width, h: info.height }
