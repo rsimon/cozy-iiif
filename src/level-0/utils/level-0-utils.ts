@@ -45,7 +45,12 @@ export const fitRegion = (
 }
 
 /**
- * Calculates rendered dimensions without upscaling. 
+ * Returns the largest size (aspect ratio preserved) that fits into the
+ * requested target size without exceeding the native size of `bounds`
+ * (no upscaling). With `size: 'full'`, that's the native size itself.
+ *
+ * `availableScale` additionally caps the result to a fraction of the
+ * native size, to reflect the resolution the server can actually deliver.
  */
 export const calculateRenderedSize = (
   bounds: Bounds,
