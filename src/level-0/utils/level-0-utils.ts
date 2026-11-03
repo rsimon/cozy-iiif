@@ -75,9 +75,9 @@ export const calculateRenderedSize = (
 }
 
 /**
- * Returns the best-matching available Level 0 scale factor for the
- * given resolution (always higher-res or equal than requested - unless
- * the server doesn't provide it.)
+ * Returns the lowest-resolution Level 0 scale factor that still delivers
+ * the given resolution. If the server has nothing high-res enough, falls 
+ * back to the highest-res available factor.
  */
 export const getLevel0ScaleFactor = (
   info: Level0ImageInfo,
@@ -100,7 +100,9 @@ export const getLevel0ScaleFactor = (
 const getFullTiles = (info: CozyImageInfo): Tile[] => {
   const region: Bounds = { x: 0, y: 0, w: info.width, h: info.height };
 
-  // Only use the explicitly listed sizes, without forcing the raw full image
+  // Only sizes explicitly listed in `info.sizes` are candidates. The raw
+  // full-size image (possibly huge) is only used as last-resort fallback
+  // in `getLevel0Tile`.
   return info.sizes.map(s => ({
     url: toURL(info, 'full', toSize(info, s.width, s.height)),
     width: s.width,
@@ -110,7 +112,9 @@ const getFullTiles = (info: CozyImageInfo): Tile[] => {
 }
 
 /**
- * Returns all tiles intersecting the given region at the given scale factor.
+ * Returns all tiles intersecting the `bounds` at the given scale factor.
+ * Tile `x`/`y` are in scaled (level) coordinates, i.e. relative to the 
+ * full image downscaled by `scaleFactor`.
  */
 export const getLevel0TilesForRegion = (
   info: Level0ImageInfo,
@@ -160,11 +164,11 @@ export const getLevel0TilesForRegion = (
 }
 
 /**
- * For one TileSpec (w, h, scaleFactors[]), and once scaleFactor, returns
+ * For one TileSpec (w, h, scaleFactors[]), and one scaleFactor, returns
  * the single tile that fully contains the requested region, or undefined
  * if the region covers more than one tile. 
  */
-const getLevel0FullImageTileForScale = (
+const getLevel0TileForScale = (
   info: Level0ImageInfo,
   tile: TileSpec,
   scaleFactor: number,
@@ -216,10 +220,14 @@ const getLevel0FullImageTileForScale = (
   };
 };
 
-/** 
- * The smallest tile or source that provides the requested region in 
- * the given size, otherwise the candidate with the best available 
- * resolution.
+/**
+ * Picks a single image (a size listed in `info.sizes`, or a single tile
+ * containing the whole region) to display `region` at `size`. Among the
+ * candidates that provide at least `size` (capped at the region's native
+ * size), returns the one with the fewest pixels. If none is sufficient,
+ * returns the candidate with the best resolution coverage.
+ *
+ * The tile may cover more than the region, so callers need to crop.
  */
 export const getLevel0Tile = (
   info: Level0ImageInfo,
@@ -227,7 +235,7 @@ export const getLevel0Tile = (
   size: Size
 ): Tile | undefined => {
   const tileSources = info.tiles.flatMap((tile) =>
-    tile.scaleFactors.map(sf => getLevel0FullImageTileForScale(info, tile, sf, region))
+    tile.scaleFactors.map(sf => getLevel0TileForScale(info, tile, sf, region))
   );
 
   const candidates = [...getFullTiles(info), ...tileSources]
