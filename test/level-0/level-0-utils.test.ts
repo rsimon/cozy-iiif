@@ -55,6 +55,7 @@ describe('Level-0 utilities', () => {
       y: 256,
       width: 244,
       height: 44,
+      // Note: last tile in the sequence (not square!)
       url: 'https://example.org/iiif/image/256,256,244,44/244,/0/default.jpg'
     });
   });
