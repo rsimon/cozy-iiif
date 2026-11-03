@@ -8,9 +8,11 @@ import type {
   TileSpec 
 } from '../../types';
 
+// Shorthand
 const toURL = (info: CozyImageInfo, region: string, size: string) =>
   `${info.id}/${region}/${size}/0/default.jpg`;
 
+// Shorthand: Leve-0-compliant size arg
 const toSize = (info: CozyImageInfo, w: number, h: number) => {
   const isV2 = info.majorVersion === 2;
   const isFullSize = isV2 ? w === info.width : w === info.width && h === info.height;
@@ -285,8 +287,6 @@ export const getLevel0Tile = (
   if (bestCandidate) return bestCandidate;
 
   // Final fallback: no best candidate - full image
-  const isV2 = info.majorVersion === 2;
-  
   return {
     url: toURL(info, 'full', toSize(info, info.width, info.height)),
     width: info.width,
