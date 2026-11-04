@@ -166,7 +166,7 @@ console.log(image.getImageURL({ size: 'full' }));
 console.log(image.fetchTrueSize());
 ```
 
-## Level 0 Utilities
+### Level 0 Utilities
 
 The `cozy-iiif/level-0` module can stitch Level 0 tiles into a thumbnail or region image:
 
@@ -182,7 +182,7 @@ if (firstImage.type === 'level0') {
 }
 ```
 
-## Annotation Helpers
+### Annotation Helpers
 
 Utilities for working with annotations on Canvases.
 
