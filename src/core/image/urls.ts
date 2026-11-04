@@ -162,13 +162,6 @@ export const getImageURL = (
   if (size === 'full')
     return getImageURLFromService(service, 'full', size, { x: 0, y: 0, w: width, h: height }, opts.rotation);
 
-  // This helper only supports dynamic images and Level 0 with `contain` 
-  // fit - because `cover` implies a crop that's not possible on Level 0!
-  if (service.profileLevel === 0 && opts.fit === 'cover') {
-    console.warn('The `cover` size option not supported for IIIF Level 0 images. Use `contain` instead, or use `getThumbnailURL` from cozy-iiif/level-0 which provides in-memory tile stitching and cropping.');
-    return '';
-  }
-
   const bounds = { x: 0, y: 0, w: width, h: height };
   const requestBounds = opts.fit === 'cover' ? getCoverBounds(bounds, size) : bounds;
   const region = opts.fit === 'cover' ? toRegionParam(requestBounds) : 'full';
