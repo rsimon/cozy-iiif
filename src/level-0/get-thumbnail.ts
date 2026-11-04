@@ -1,4 +1,3 @@
-import { getImages } from '../core';
 import { fetchImageInfo } from '../helpers';
 import type { CozyCanvas, CozyImageResource, Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import { cropRegionFromTile } from './crop-region';
@@ -66,7 +65,7 @@ export const getStitchedThumbnail = async (
  * A drop-in replacement for the standard canvas.getThumbnailURL() method which
  * delegates to `getStitchedThumbnail` if necessary.  
  */
-export const getThumbnailURL = (
+export const getThumbnailURL = async (
   canvas: CozyCanvas,
   images: CozyImageResource[] = canvas.images,
   opts: GetLevel0ImageOpts = { size: 400 }
@@ -83,7 +82,7 @@ export const getThumbnailURL = (
     } else if (image.type === 'level0') {
       return opts.fit === 'contain' 
         ? image.getImageURL(opts) 
-        : getStitchedThumbnail(image, opts);
+        : URL.createObjectURL(await getStitchedThumbnail(image, opts));
     } else if (image.type === 'static') {
       return image.url;
     }    
