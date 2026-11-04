@@ -133,7 +133,7 @@ toc.root.forEach(logTOCNode);
 
 ### Retrieving Images and Regions
 
-Dynamic images are served from an image server, and have helpers for retrieving image- or region-URLs to suit specific size requirements. The API is inspired by the CSS [object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) concept:
+Dynamic images served from an image server have helpers for retrieving image- or region-URLs to suit specific size requirements. cozy-iiif's API is inspired by the CSS [object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) concept:
 
 - **contain** will fit the image into a specified bounding box. width and height are equal or smaller than the specified bounds.
 - **cover** will fill the specified bounding box, cropping the image around the center
