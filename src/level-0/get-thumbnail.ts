@@ -68,18 +68,11 @@ export const getStitchedThumbnail = async (
   return stitchRegionToBlob(info, region, opts);
 }
 
-const blobToDataURL = (blob: Blob): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-
 /** 
- * An almost-drop-in replacement for the standard canvas.getThumbnailURL() method
- * which delegates to `getStitchedThumbnail` if necessary. Note that this function
- * returns a `Promise<string>`! 
+ * A near-drop-in replacement for the standard canvas.getThumbnailURL() method
+ * which resolves `info.json` for Level 0 tilesets, so that a suitable `size`
+ * can be chosen for the thumbnail instead of the full high-res image. Returns
+ * a `Promise<string | undefined>`.
  */
 export const getThumbnailURL = async (
   canvas: CozyCanvas,
