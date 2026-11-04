@@ -163,7 +163,7 @@ console.log(image.getImageURL({ size: 'full' }));
 
 // Resolves the actual image pixel size from the info.json
 // or the image file (which may **differ**) from the canvas size!
-console.log(image.getPixelSize());
+console.log(image.fetchTrueSize());
 ```
 
 ## Level 0 Utilities
