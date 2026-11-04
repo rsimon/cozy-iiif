@@ -1,8 +1,7 @@
-import type { Service } from '@iiif/presentation-3';
 import { getPropertyValue } from '../resource';
-import { parseImageService } from './service';
 import type {
   Bounds,
+  CozyImageInfo,
   CozyImageService,
   GetImageURLOpts,
   Rotation,
@@ -36,7 +35,7 @@ const toRotationParam = (rotation: Rotation): string => {
 }
 
 const getImageURLFromService = (
-  service: CozyImageService,
+  service: CozyImageService | CozyImageInfo,
   region: string,
   size: 'full' | Size,
   sourceBounds: Bounds,
@@ -52,10 +51,8 @@ const getImageURLFromService = (
     if (degrees !== 0 || mirrored)
       console.warn(`Level 0 image - rotation and mirroring not supported`);
 
-    if (region !== 'full') {
+    if (region !== 'full')
       console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
-      return;
-    }
 
     if (size === 'full')
       return `${id}/full/${fullSizeParam}/0/default.jpg`;
@@ -152,7 +149,7 @@ export const clampRegion = (bounds: Bounds, imageSize: Size): Bounds => {
 export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
-  service: CozyImageService  
+  service: CozyImageService | CozyImageInfo
 ) => (opts: GetImageURLOpts = { size: 400 }) => {
   if (!width || !height) {
     console.warn('Undefined image size');

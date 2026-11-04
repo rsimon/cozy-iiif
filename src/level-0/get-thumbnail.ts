@@ -5,9 +5,11 @@ import { fitRegion, stitchRegionToBlob } from './utils';
 import type { 
   CozyCanvas, 
   CozyImageResource, 
+  CozyImageService, 
   Level0ImageInfo, 
   Level0ImageServiceResource 
 } from '../types';
+import { getImageURL } from '../core';
 
 /**
  * Returns a single Level 0 tile suitable for displaying as a thumbnail
@@ -94,9 +96,9 @@ export const getThumbnailURL = async (
     if (image.type === 'dynamic') {
       return image.getImageURL(opts);
     } else if (image.type === 'level0') {
-      return opts.fit === 'contain' 
-        ? image.getImageURL(opts) 
-        : blobToDataURL(await getStitchedThumbnail(image, opts));
+      const info = await fetchImageInfo(image.serviceUrl);
+      if (info)
+        return getImageURL(width, height, info)(opts);
     } else if (image.type === 'static') {
       return image.url;
     }    
