@@ -1,6 +1,6 @@
 # cozy-iiif
 
-**A friendly TypeScript API for IIIF**
+**A friendly TypeScript API for IIIF.**
 
 IIIF is a big standard, and cozy-iiif helps you feel at home in it. Built on the IIIF Commons libraries [@iiif/presentation-3](https://github.com/IIIF-Commons/presentation-3-types) and [@iiif/parser](https://github.com/IIIF-Commons/parser).
 
