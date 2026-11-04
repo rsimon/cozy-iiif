@@ -48,11 +48,13 @@ const getImageURLFromService = (
   
   if (isLevel0) {
     const { degrees, mirrored } = normalizeRotation(rotation);
-    if (degrees !== 0 || mirrored)
+    if (degrees !== 0 || mirrored) {
       console.warn(`Level 0 image - rotation and mirroring not supported`);
+      return;
+    }
 
     if (region !== 'full')
-      console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
+      console.warn('IIIF Level 0 does not support custom regions. Returned URL will reference a suitably-sized full image');
 
     if (size === 'full')
       return `${id}/full/${fullSizeParam}/0/default.jpg`;
