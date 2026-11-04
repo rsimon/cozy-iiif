@@ -166,7 +166,7 @@ export const getImageURL = (
   // This helper only supports dynamic images and Level 0 with `contain` 
   // fit - because `cover` implies a crop that's not possible on Level 0!
   if (service.profileLevel === 0 && opts.fit === 'cover') {
-    console.warn('`cover` size option not supported with Level 0. Use `contain` or consider the cozy-iiif/level-0 `getThumbnailURL` helper instead.');
+    console.warn('The `cover` size option not supported for IIIF Level 0 images. Use `contain` instead, or use `getThumbnailURL` from cozy-iiif/level-0 which provides in-memory tile stitching and cropping.');
     return '';
   }
 

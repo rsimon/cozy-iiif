@@ -1,8 +1,13 @@
 import { fetchImageInfo } from '../helpers';
-import type { CozyCanvas, CozyImageResource, Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import { cropRegionFromTile } from './crop-region';
 import type { CroppedTile, GetLevel0ImageOpts } from './types';
 import { fitRegion, stitchRegionToBlob } from './utils';
+import type { 
+  CozyCanvas, 
+  CozyImageResource, 
+  Level0ImageInfo, 
+  Level0ImageServiceResource 
+} from '../types';
 
 /**
  * Returns a single Level 0 tile suitable for displaying as a thumbnail
@@ -61,9 +66,18 @@ export const getStitchedThumbnail = async (
   return stitchRegionToBlob(info, region, opts);
 }
 
+const blobToDataURL = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+
 /** 
- * A drop-in replacement for the standard canvas.getThumbnailURL() method which
- * delegates to `getStitchedThumbnail` if necessary.  
+ * An almost-drop-in replacement for the standard canvas.getThumbnailURL() method
+ * which delegates to `getStitchedThumbnail` if necessary. Note that this function
+ * returns a `Promise<string>`! 
  */
 export const getThumbnailURL = async (
   canvas: CozyCanvas,
@@ -82,7 +96,7 @@ export const getThumbnailURL = async (
     } else if (image.type === 'level0') {
       return opts.fit === 'contain' 
         ? image.getImageURL(opts) 
-        : URL.createObjectURL(await getStitchedThumbnail(image, opts));
+        : blobToDataURL(await getStitchedThumbnail(image, opts));
     } else if (image.type === 'static') {
       return image.url;
     }    
