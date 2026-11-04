@@ -24,6 +24,8 @@ interface BaseImageResource {
 
   getImageURL(opts?: GetImageURLOpts): string;
 
+  fetchActualSize(): Promise<Size>;
+
 }
 
 export interface StaticImageResource extends BaseImageResource {
@@ -31,8 +33,6 @@ export interface StaticImageResource extends BaseImageResource {
   readonly type: 'static';
 
   readonly url: string;
-
-  getPixelSize(): Promise<Size>;
 
 }
 

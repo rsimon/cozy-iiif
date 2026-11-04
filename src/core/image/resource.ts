@@ -2,7 +2,7 @@ import type { IIIFExternalWebResource, SpecificResource } from '@iiif/presentati
 import type { Size } from '../../types';
 import { getPropertyValue } from '../resource';
 import { parseRegion } from '../selector';
-import { normalizeServiceUrl } from './info';
+import { fetchActualSizeFromServiceUrl, normalizeServiceUrl } from './info';
 import { isImageService, parseImageService } from './service';
 import { getImageURL, getRegionURL } from './urls';
 import type { 
@@ -54,7 +54,8 @@ export const parseImageResource = (
       serviceUrl,
       target,
       selector,
-      getImageURL: getImageURL(width, height, imageService)
+      getImageURL: getImageURL(width, height, imageService),
+      fetchActualSize: fetchActualSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
 
     if (service.profileLevel === 0) {
@@ -75,12 +76,12 @@ export const parseImageResource = (
       format,
       selector,
       getImageURL: () => id,
-      getPixelSize: getStaticImagePixelSize(id)
+      fetchActualSize: fetchStaticImagePixelSize(id)
     } as StaticImageResource;
   }
 }
 
-const getStaticImagePixelSize = (url: string) => (): Promise<Size> => {
+const fetchStaticImagePixelSize = (url: string) => (): Promise<Size> => {
   const isBrowser = typeof window !== 'undefined';
 
   return fetch(url).then(res => res.blob()).then(blob => {

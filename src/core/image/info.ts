@@ -1,7 +1,12 @@
-import type { CozyImageInfo, DynamicImageInfo, Level0ImageInfo } from '../../types';
 import { getPropertyValue } from '../resource';
 import { parseImageService } from './service';
 import { getImageURL, getRegionURL } from './urls';
+import type { 
+  CozyImageInfo, 
+  DynamicImageInfo, 
+  Level0ImageInfo, 
+  Size 
+} from '../../types';
 
 /**
  * Ensures the service URL properly ends with `info.json`.
@@ -49,3 +54,10 @@ export const parseImageInfo = (resource: any): CozyImageInfo => {
     } as DynamicImageInfo;
   }
 }
+
+export const fetchActualSizeFromServiceUrl = (serviceUrl: string) => (): Promise<Size> =>
+  fetch(serviceUrl).then(res => res.json()).then(data => {
+    const w: number = data.width;
+    const h: number = data.height;
+    return (w !== undefined && h !== undefined) ? { w, h } : { w: NaN, h: NaN };
+  });
