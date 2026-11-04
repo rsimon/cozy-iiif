@@ -3,6 +3,7 @@ import { getPropertyValue } from '../resource';
 import { parseImageService } from './service';
 import type {
   Bounds,
+  CozyImageService,
   GetImageURLOpts,
   Rotation,
   Size
@@ -35,7 +36,7 @@ const toRotationParam = (rotation: Rotation): string => {
 }
 
 const getImageURLFromService = (
-  service: Service,
+  service: CozyImageService,
   region: string,
   size: 'full' | Size,
   sourceBounds: Bounds,
@@ -43,11 +44,8 @@ const getImageURLFromService = (
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
 
-  const { majorVersion, profileLevel } = parseImageService(service);
-
-  const isLevel0 = profileLevel === 0;
-
-  const fullSizeParam = majorVersion === 2 ? 'full' : 'max';
+  const isLevel0 = service.profileLevel === 0;
+  const fullSizeParam = service.majorVersion === 2 ? 'full' : 'max';
   
   if (isLevel0) {
     const { degrees, mirrored } = normalizeRotation(rotation);
@@ -59,9 +57,8 @@ const getImageURLFromService = (
       return;
     }
 
-    if (size === 'full') {
+    if (size === 'full')
       return `${id}/full/${fullSizeParam}/0/default.jpg`;
-    }
 
     // For level 0, find the closest pre-defined size
     if ('sizes' in service && Array.isArray(service.sizes)) {
@@ -69,7 +66,7 @@ const getImageURLFromService = (
         .sort((a, b) => (b.width * b.height) - (a.width * a.height))
         .filter(s => (s.width * s.height) >= size.w * size.h)[0];
 
-      const isV2 = majorVersion === 2;
+      const isV2 = service.majorVersion === 2;
       if (suitableSize)
         return `${id}/full/${suitableSize.width},${isV2 ? '' : suitableSize.height}/0/default.jpg`;
     }
@@ -155,7 +152,7 @@ export const clampRegion = (bounds: Bounds, imageSize: Size): Bounds => {
 export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
-  service: Service  
+  service: CozyImageService  
 ) => (opts: GetImageURLOpts = { size: 400 }) => {
   if (!width || !height) {
     console.warn('Undefined image size');
@@ -165,6 +162,13 @@ export const getImageURL = (
   const size = normalizeTargetSize(opts.size);
   if (size === 'full')
     return getImageURLFromService(service, 'full', size, { x: 0, y: 0, w: width, h: height }, opts.rotation);
+
+  // This helper only supports dynamic images and Level 0 with `contain` 
+  // fit - because `cover` implies a crop that's not possible on Level 0!
+  if (service.profileLevel === 0 && opts.fit === 'cover') {
+    console.warn('`cover` size option not supported for Level 0 images - use the cozy-iiif/level-0 `getThumbnailURL` helper instead');
+    return '';
+  }
 
   const bounds = { x: 0, y: 0, w: width, h: height };
   const requestBounds = opts.fit === 'cover' ? getCoverBounds(bounds, size) : bounds;
@@ -177,7 +181,7 @@ export const getImageURL = (
  * an image service.
  */
 export const getRegionURL = (
-  service: Service,
+  service: CozyImageService,
   width: number,
   height: number
 ) => (
@@ -185,9 +189,8 @@ export const getRegionURL = (
   opts: GetImageURLOpts = { size: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
-  const isLevel0 = parseImageService(service).profileLevel === 0;
 
-  if (isLevel0) {
+  if (service.profileLevel === 0) {
     console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
     return;
   }

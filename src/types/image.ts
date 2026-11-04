@@ -40,13 +40,9 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly type: 'dynamic';
 
-  readonly service: Service;
+  readonly service: CozyImageService;
 
   readonly serviceUrl: string;
-
-  readonly majorVersion: number;
-
-  readonly profileLevel: number;
 
   getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string;
 
@@ -56,11 +52,23 @@ export interface Level0ImageServiceResource extends BaseImageResource {
 
   readonly type: 'level0';
 
-  readonly majorVersion: number;
-
-  readonly service: Service;
+  readonly service: CozyImageService;
 
   readonly serviceUrl: string;
+
+}
+
+export interface CozyImageService {
+  
+  readonly majorVersion: number;
+  
+  readonly profileLevel?: number;
+  
+  readonly width?: number | null ;
+  
+  readonly height?: number | null;
+
+  readonly source: Service;
 
 }
 

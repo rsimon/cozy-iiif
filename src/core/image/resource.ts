@@ -42,19 +42,18 @@ export const parseImageResource = (
     const serviceUrl = normalizeServiceUrl(getPropertyValue<string>(imageService, 'id'));
 
     const width = imageWidth || service.width;
-    const height = imageHeight || service.height;;
+    const height = imageHeight || service.height;
 
     const image = {
       source: resource,
       type: service.profileLevel === 0 ? 'level0' : 'dynamic',
-      service: imageService,
+      service,
       width,
       height,
-      majorVersion: service.majorVersion,
       serviceUrl,
       target,
       selector,
-      getImageURL: getImageURL(width, height, imageService),
+      getImageURL: getImageURL(width, height, service),
       fetchTrueSize: fetchTrueSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
 
