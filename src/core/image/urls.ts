@@ -61,8 +61,6 @@ const getImageURLFromService = (
 
     // For level 0, find the closest pre-defined size
     if ('sizes' in service && Array.isArray(service.sizes)) {
-      console.log('finding for', size);
-
       const suitableSize = service.sizes
         .sort((a, b) => (a.width * a.height) - (b.width * b.height))
         .filter(s => s.width >= size.w && s.height >= size.h)[0];
