@@ -89,6 +89,15 @@ console.log(manifest.getMetadata());
 console.log(manifest.source);
 ```
 
+The **CozyImageResource** provides helper properties that identify the type and level of an image.
+
+```ts
+const firstCanvas = manifest.canvases[0];
+const image = firstCanvas.images[0];
+
+console.log(image.type); // 'static', 'dynamic' or 'level0'
+```
+
 ### Thumbnail Helper
 
 CozyCanvas has a simple helper for getting a thumbnail URL. The URL
@@ -120,17 +129,6 @@ const logTOCNode = (node: CozyTOCNode) => {
 }
     
 toc.root.forEach(logTOCNode);
-```
-
-### Image Types and Levels
-
-The **CozyImageResource** provides helper properties that identify the type and level of an image.
-
-```ts
-const firstCanvas = manifest.canvases[0];
-const image = firstCanvas.images[0];
-
-console.log(image.type); // 'static', 'dynamic' or 'level0'
 ```
 
 ### Retrieving Images and Regions
