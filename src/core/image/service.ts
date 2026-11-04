@@ -39,6 +39,7 @@ const getProfileLevel = (profile: any) => {
  * profile level.
  */
 export const parseImageService = (service: Service): CozyImageService => {
+  const id = getPropertyValue(service, 'id');
   const t = getPropertyValue<string>(service, 'type');
   const context = getPropertyValue<string>(service, 'context');
 
@@ -49,44 +50,28 @@ export const parseImageService = (service: Service): CozyImageService => {
   const p = getPropertyValue<any>(s, 'profile');
   const profileLevel = getProfileLevel(p);
 
+  const base = {
+    id,
+    profileLevel,
+    width,
+    height,
+    source: service
+  };
+
   if (t === 'ImageService2' || context?.includes('image/2'))
-    return { 
-      majorVersion: 2, 
-      profileLevel, 
-      width, 
-      height, 
-      source: service  
-    };
+    return { ...base, majorVersion: 2 };
   
   if (t === 'ImageService3' || context?.includes('image/3'))
-    return { 
-      majorVersion: 3, 
-      profileLevel, 
-      width, 
-      height,
-      source: service
-    };
+    return { ...base, majorVersion: 3 };
 
   // Fallback / future-proofing for newer contexts (e.g., image/4)
   if (context?.includes('image/')) {
     const match = context.match(/image\/(\d+)/);
     const majorVersion = match ? parseInt(match[1], 10) : 3;
 
-    return { 
-      majorVersion, 
-      profileLevel, 
-      width, 
-      height,
-      source: service 
-    };
+    return { ...base, majorVersion };
   }
 
-  return { 
-    majorVersion: 3, 
-    profileLevel, 
-    width, 
-    height,
-    source: service
-  };
+  return { ...base, majorVersion: 3 };
 }
 

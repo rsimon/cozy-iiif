@@ -59,6 +59,8 @@ export interface Level0ImageServiceResource extends BaseImageResource {
 }
 
 export interface CozyImageService {
+
+  readonly id: string;
   
   readonly majorVersion: number;
   
