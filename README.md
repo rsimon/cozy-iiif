@@ -1,15 +1,17 @@
 # cozy-iiif
 
-A developer-friendly TypeScript API for working with IIIF resources. Built on top of the IIIF Commons [@iiif/presentation-3](https://github.com/IIIF-Commons/presentation-3-types) and [@iiif/parser](https://github.com/IIIF-Commons/parser) libraries.
+**A friendly TypeScript API for IIIF**
+
+IIIF is a big standard, and cozy-iiif helps you feel at home in it. Built on the IIIF Commons libraries [@iiif/presentation-3](https://github.com/IIIF-Commons/presentation-3-types) and [@iiif/parser](https://github.com/IIIF-Commons/parser).
 
 ## Features
 
-- Resource identification for any URL: IIIF collection and presentation manifests, image services, static image, and more.
-- Developer-friendly TypeScript API for parsing and working with IIIF resources.
-- Seamless upgrade from IIIF Presentation API v2 to v3 (using `@iiif/parser` under the hood).
-- Preserves access to underlying `@iiif/presentation-3` types.
-- Utilities for stitching thumbnails and cropping regions from IIIF Level 0 tilesets and [simple image manifests](https://iiif.io/api/cookbook/recipe/0001-mvm-image/).
-- Helpers for reading and writing annotations on Canvases and Presentation manifests.
+- **Point it at any URL.** Identifies manifests, collections, image services, and plain images.
+- **Presentation v2/3/4, you don't have to care.** Everything comes through one unified API.
+- **Helpers for the everyday stuff.** Labels, metadata, thumbnails, table of contents, image regions.
+- **Level 0 magic.** Stitch thumbnails and crop custom regions, even from static Level 0 tilesets. 
+- **Annotation helpers.** Read and write annotations on Canvases and manifests.
+- **No lock-in.** Original `@iiif/presentation-3` data is always available via `.source`.
 
 ## Installation
 
@@ -17,13 +19,24 @@ A developer-friendly TypeScript API for working with IIIF resources. Built on to
 npm install cozy-iiif
 ```
 
-## Basic Usage
-
-Identify and parse a URL:
+## Quick Start
 
 ```ts
 import { Cozy } from 'cozy-iiif';
 
+const parsed = await Cozy.parseURL('https://www.example.com/manifest.json');
+
+if (parsed.type === 'manifest') {
+  const manifest = parsed.resource;
+
+  console.log(manifest.getLabel());
+  console.log(manifest.canvases[0].getThumbnailURL());
+}
+```
+
+### Parse Anything
+
+```ts
 const parsed = await Cozy.parseURL('https://www.example.com/manifest.json');
 
 if (parsed.type === 'manifest') {
@@ -48,8 +61,10 @@ Alternatively, you can parse an existing JSON object.
 
 ```ts
 const json = await fetch('https://www.example.com/manifest.json').then(res => res.json());
-Cozy.parse(json);
+const result = Cozy.parse(json);
 ```
+
+### Cozy Types
 
 Cozy provides normalized utility types for key IIIF entities: **CozyManifest**, 
 **CozyCanvas**, **CozyRange**, **CozyImageResource**, **CozyCollection**, etc. Each
@@ -76,7 +91,7 @@ console.log(manifest.source);
 
 ### Thumbnail Helper
 
-CozyCanvas has a simple helper for getting a Thumbnail URL. The URL
+CozyCanvas has a simple helper for getting a thumbnail URL. The URL
 will use the `thumbnail` property of the original resource if available, or the image service
 otherwise.
 
@@ -109,14 +124,13 @@ toc.root.forEach(logTOCNode);
 
 ### Image Types and Levels
 
-The **CozyImageResource** provides a helper properties that identify the type and level of 
-an image.
+The **CozyImageResource** provides helper properties that identify the type and level of an image.
 
 ```ts
 const firstCanvas = manifest.canvases[0];
 const image = firstCanvas.images[0];
 
-console.log(image.type); // 'static', 'dynamic' or 'level0';
+console.log(image.type); // 'static', 'dynamic' or 'level0'
 ```
 
 ### Retrieving Images and Regions
@@ -170,7 +184,7 @@ if (firstImage.type === 'level0') {
 }
 ```
 
-## Cozy Annotation Helpers
+## Annotation Helpers
 
 Utilities for working with annotations on Canvases.
 
@@ -182,8 +196,6 @@ they are [embedded in the manifest, or referenced](https://iiif.io/api/cookbook/
 
 ```ts
 import { fetchAnnotations } from 'cozy-iiif/helpers';
-
-const firstCanvas = manifest.canvases[0];
 
 const annotations = await fetchAnnotations(manifest.canvases[0]);
 console.log(annotations);
