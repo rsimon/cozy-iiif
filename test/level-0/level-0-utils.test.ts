@@ -56,7 +56,20 @@ describe('Level-0 utilities', () => {
       width: 244,
       height: 44,
       // Note: last tile in the sequence (not square!)
-      url: 'https://example.org/iiif/image/256,256,244,44/244,/0/default.jpg'
+      url: 'https://example.org/iiif/image/256,256,244,44/244,44/0/default.jpg'
     });
+  });
+
+  it('uses the width-only size syntax for Image API v2 tiles', () => {
+    const imageInfoV2 = { ...imageInfo, majorVersion: 2 } as Level0ImageInfo;
+    const tiles = getLevel0TilesForRegion(
+      imageInfoV2,
+      { x: 0, y: 0, w: 500, h: 300 },
+      1
+    );
+
+    expect(tiles[3].url).toBe(
+      'https://example.org/iiif/image/256,256,244,44/244,/0/default.jpg'
+    );
   });
 });
