@@ -24,7 +24,7 @@ interface BaseImageResource {
 
   getImageURL(opts?: GetImageURLOpts): string;
 
-  fetchActualSize(): Promise<Size>;
+  fetchTrueSize(): Promise<Size>;
 
 }
 

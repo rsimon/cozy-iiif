@@ -55,7 +55,7 @@ export const parseImageInfo = (resource: any): CozyImageInfo => {
   }
 }
 
-export const fetchActualSizeFromServiceUrl = (serviceUrl: string) => (): Promise<Size> =>
+export const fetchTrueSizeFromServiceUrl = (serviceUrl: string) => (): Promise<Size> =>
   fetch(serviceUrl).then(res => res.json()).then(data => {
     const w: number = data.width;
     const h: number = data.height;

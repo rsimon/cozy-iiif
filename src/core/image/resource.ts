@@ -2,7 +2,7 @@ import type { IIIFExternalWebResource, SpecificResource } from '@iiif/presentati
 import type { Size } from '../../types';
 import { getPropertyValue } from '../resource';
 import { parseRegion } from '../selector';
-import { fetchActualSizeFromServiceUrl, normalizeServiceUrl } from './info';
+import { fetchTrueSizeFromServiceUrl, normalizeServiceUrl } from './info';
 import { isImageService, parseImageService } from './service';
 import { getImageURL, getRegionURL } from './urls';
 import type { 
@@ -55,7 +55,7 @@ export const parseImageResource = (
       target,
       selector,
       getImageURL: getImageURL(width, height, imageService),
-      fetchActualSize: fetchActualSizeFromServiceUrl(serviceUrl)
+      fetchTrueSize: fetchTrueSizeFromServiceUrl(serviceUrl)
     } as ImageServiceResource;
 
     if (service.profileLevel === 0) {
@@ -76,7 +76,7 @@ export const parseImageResource = (
       format,
       selector,
       getImageURL: () => id,
-      fetchActualSize: fetchStaticImagePixelSize(id)
+      fetchTrueSize: fetchStaticImagePixelSize(id)
     } as StaticImageResource;
   }
 }
