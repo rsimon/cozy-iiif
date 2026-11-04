@@ -131,7 +131,7 @@ const logTOCNode = (node: CozyTOCNode) => {
 toc.root.forEach(logTOCNode);
 ```
 
-### Retrieving Images and Regions
+### Retrieve Images and Regions
 
 Dynamic images served from an image server have helpers for retrieving image- or region-URLs to suit specific size requirements. cozy-iiif's API is inspired by the CSS [object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) concept:
 
