@@ -1,4 +1,12 @@
-import type { Bounds } from '../types';
+import type { Bounds, Size } from '../types';
+
+export interface GetLevel0ImageOpts {
+
+  size: 'full' | number | Size;
+
+  fit?: 'cover' | 'contain';
+
+}
 
 export interface Tile {
 
@@ -8,7 +16,7 @@ export interface Tile {
 
   height: number;
 
-  region: Bounds
+  region: Bounds;
 
 }
 
@@ -24,9 +32,7 @@ export interface StitchableTile extends Omit<Tile, 'region'> {
 
 }
 
-export interface Crop {
-
-  tile: Tile;
+export interface CroppedTile extends Tile {
 
   crop: Bounds;
 

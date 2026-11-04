@@ -1,40 +1,44 @@
-import type { Crop, StitchableTile, Tile } from './types';
-import { getFullTiles, getLevel0Tile, getThrottledLoader, toURL } from './utils';
-import type {
-  Bounds,
-  Level0ImageInfo,
-  Level0ImageServiceResource,
-  TileSpec
-} from '../types';
-import { fetchImageInfo } from '../helpers';
 
-const clampRegion = (info: Level0ImageInfo, region: Bounds): Bounds => {
-  const x = Math.min(Math.max(0, region.x), info.width - 1);
-  const y = Math.min(Math.max(0, region.y), info.height - 1);
-  const w = Math.max(1, Math.min(region.w, info.width - x));
-  const h = Math.max(1, Math.min(region.h, info.height - y));
-  return { x, y, w, h };
-}
+import { fetchImageInfo } from '../helpers';
+import type { CroppedTile, GetLevel0ImageOpts } from './types';
+import type { Bounds, Level0ImageInfo, Level0ImageServiceResource } from '../types';
+import {
+  getLevel0Tile,
+  calculateRenderedSize,
+  fitRegion,
+  stitchRegionToBlob
+} from './utils';
 
 /**
- * CSS variant: the best single image for the region, plus the crop rectangle
- * (in that image's pixels) that the consuming app should show.
+ * Returns a single Level 0 image tile that matches the requested `bounds`,
+ * plus a `crop` rectangle (in that tile's pixel coordinate space) that 
+ * the consuming app should clip the tile to, in order to display the 
+ * requested region exactly.
+ * 
+ * Use this function if you want a simple crop based on a single
+ * Level 0 tile and (for example) as CSS clip.
  */
 export const cropRegionFromTile = (
   info: Level0ImageInfo,
   bounds: Bounds,
-  minWidth?: number
-): Crop | undefined => {
-  const region = clampRegion(info, bounds);
+  opts: GetLevel0ImageOpts = { size: 'full' }
+): CroppedTile => {
+  const imageSize = { w: info.width, h: info.height };
 
-  const tile = getLevel0Tile(info, region, minWidth ?? region.w);
-  if (!tile) return undefined;
+  const region = fitRegion(bounds, imageSize, opts);
+
+  // The requested region, scaled down to the requested 
+  // size (aspect ratio preserved), but never larger
+  // than the region's native pixel size (no upscaling). 
+  const outputSize = calculateRenderedSize(region, opts);
+
+  const tile = getLevel0Tile(info, region, outputSize);
 
   const sx = tile.width / tile.region.w;
   const sy = tile.height / tile.region.h;
 
   return {
-    tile,
+    ...tile,
     crop: {
       x: (region.x - tile.region.x) * sx,
       y: (region.y - tile.region.y) * sy,
@@ -44,57 +48,18 @@ export const cropRegionFromTile = (
   };
 }
 
-const getTileUrl = (info: Level0ImageInfo, bounds: Bounds): string => {
-  const { x, y, w, h } = bounds;
-  const tileWidth = info.tiles[0].width;
-  const tileHeight = info.tiles[0].height|| info.tiles[0].width;
-  return `${info.id}/${x * tileWidth},${y * tileHeight},${w},${h}/${tileWidth},/0/default.jpg`;
-}
-
-const getTilesForRegion = (info: Level0ImageInfo, bounds: Bounds): StitchableTile[] => {
-  const tileWidth = info.tiles[0].width;
-  const tileHeight = info.tiles[0].height || info.tiles[0].width; // fallback for square tiles
-  const maxWidth = info.width;
-  const maxHeight = info.height;
-
-  const startTileX = Math.floor(bounds.x / tileWidth);
-  const startTileY = Math.floor(bounds.y / tileHeight);
-  const endTileX = Math.ceil((bounds.x + bounds.w) / tileWidth);
-  const endTileY = Math.ceil((bounds.y + bounds.h) / tileHeight);
-
-  const tiles: StitchableTile[] = [];
-  
-  for (let y = startTileY; y < endTileY; y++) {
-    for (let x = startTileX; x < endTileX; x++) {
-      // Skip tiles outside image bounds
-      if (x * tileWidth >= maxWidth || y * tileHeight >= maxHeight) {
-        continue;
-      }
-
-      // Calculate actual tile dimensions (might be smaller at edges)
-      const effectiveWidth = Math.min(tileWidth, maxWidth - (x * tileWidth));
-      const effectiveHeight = Math.min(tileHeight, maxHeight - (y * tileHeight));
-
-      tiles.push({
-        x,
-        y,
-        width: effectiveWidth,
-        height: effectiveHeight,
-        url: getTileUrl(info, { x, y, w: effectiveWidth, h: effectiveHeight })
-      });
-    }
-  }
-
-  return tiles;
-}
-
 /**
- * Canvas variant: renders the region as an actual image, stitching tiles if needed.
- * `minWidth` defaults to the region's native width.
+ * Returns a cropped region as an image Blob at the requested size.
+ * The image will be stitched from multiple Level 0 tiles if needed.
+ * 
+ * Use this function if you need a high-resolution crop, or binary
+ * image data ready for export or download without the need for CSS 
+ * masking.
  */
 export const cropStitchedRegion = async (
   source: Level0ImageInfo | Level0ImageServiceResource, 
-  bounds: Bounds
+  bounds: Bounds,
+  opts: GetLevel0ImageOpts = { size: 'full' }
 ): Promise<Blob> => {
   const info = 'tiles' in source
     ? source : await fetchImageInfo(source.serviceUrl);
@@ -105,61 +70,14 @@ export const cropStitchedRegion = async (
   if (info.type !== 'level0')
     throw new Error(`Not a Level 0 image service ${source.serviceUrl}`);
 
-  const tiles = getTilesForRegion(info, bounds);
-  
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  if (!ctx)
-    // Should never happen
-    throw new Error('Error initializing canvas context');
-  
-  const tileWidth = info.tiles[0].width;
-  const tileHeight = info.tiles[0].height || info.tiles[0].width;
+  const imageSize = { w: info.width, h: info.height };
+  const region = fitRegion(bounds, imageSize, opts);
 
-  const tilesWidth = (Math.ceil(bounds.w / tileWidth) + 1) * tileWidth;
-  const tilesHeight = (Math.ceil(bounds.h / tileHeight) + 1) * tileHeight;
-
-  canvas.width = tilesWidth;
-  canvas.height = tilesHeight;
-
-  const loader = getThrottledLoader({ callsPerSecond: 20 });
-
-  // TODO implement polite harvesting!
-  await Promise.all(tiles.map(async (tile) => {
-    const img = await loader.loadImage(tile.url);
-    const x = (tile.x * tileWidth) - bounds.x;
-    const y = (tile.y * tileHeight) - bounds.y;
-    ctx.drawImage(img, x, y);
-  }));
-
-  const cropCanvas = document.createElement('canvas');
-  cropCanvas.width = bounds.w;
-  cropCanvas.height = bounds.h;
-
-  const cropCtx = cropCanvas.getContext('2d');
-  
-  if (!cropCtx)
-    throw new Error('Error initializing canvas context');
-
-  // Copy cropped region
-  cropCtx.drawImage(canvas, 
-    0, 0, bounds.w, bounds.h,
-    0, 0, bounds.w, bounds.h
+  return stitchRegionToBlob(
+    info,
+    region,
+    opts,
+    20
   );
-
-  return new Promise((resolve, reject) => {
-    cropCanvas.toBlob(
-      (blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error('Failed to create blob'));
-        }
-      },
-      'image/jpeg',
-      0.95
-    );
-  });
 
 }
