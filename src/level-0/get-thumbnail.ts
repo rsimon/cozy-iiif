@@ -1,3 +1,4 @@
+import { getImageURL } from '../core';
 import { fetchImageInfo } from '../helpers';
 import { cropRegionFromTile } from './crop-region';
 import type { CroppedTile, GetLevel0ImageOpts } from './types';
@@ -5,11 +6,9 @@ import { fitRegion, stitchRegionToBlob } from './utils';
 import type { 
   CozyCanvas, 
   CozyImageResource, 
-  CozyImageService, 
   Level0ImageInfo, 
   Level0ImageServiceResource 
 } from '../types';
-import { getImageURL } from '../core';
 
 /**
  * Returns a single Level 0 tile suitable for displaying as a thumbnail
