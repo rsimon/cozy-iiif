@@ -24,17 +24,16 @@ const toSize = (info: CozyImageInfo, w: number, h: number) => {
 /**
  * Builds the URL for a single tile. A tile covering the whole image is
  * requested as `full` (with the version-specific size keyword); any other
- * tile uses an explicit region and a `w,` size, which is the form Level 0
- * tile generators write.
+ * tile uses an explicit region and a version-specific size.
  */
 const toTileURL = (info: CozyImageInfo, region: Bounds, w: number, h: number) => {
   const coversImage =
     region.x === 0 && region.y === 0 &&
     region.w === info.width && region.h === info.height;
-
+    
   return coversImage
     ? toURL(info, 'full', toSize(info, w, h))
-    : toURL(info, `${region.x},${region.y},${region.w},${region.h}`, `${w},`);
+    : toURL(info, `${region.x},${region.y},${region.w},${region.h}`, toSize(info, w, h));
 }
 
 /**
