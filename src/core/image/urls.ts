@@ -34,9 +34,6 @@ const toRotationParam = (rotation: Rotation): string => {
   return mirrored ? `!${((-degrees % 360) + 360) % 360}` : `${degrees}`;
 }
 
-const isImageInfo = (s: CozyImageService | CozyImageInfo): s is CozyImageInfo =>
-  'tiles' in s && 'sizes' in s;
-
 const getImageURLFromService = (
   service: CozyImageService | CozyImageInfo,
   region: string,
@@ -63,7 +60,7 @@ const getImageURLFromService = (
       return `${id}/full/${fullSizeParam}/0/default.jpg`;
 
     // For level 0, find the closest pre-defined size
-    if (isImageInfo(service)) { 
+    if (service.sizes.length > 0) { 
       const suitableSize = service.sizes
         .sort((a, b) => (a.width * a.height) - (b.width * b.height))
         .filter(s => s.width >= size.w && s.height >= size.h)[0];

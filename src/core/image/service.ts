@@ -45,7 +45,7 @@ export const parseImageService = (service: Service): CozyImageService => {
 
   const s = service as ImageService;
 
-  const { width, height } = s;
+  const { width, height, sizes, tiles } = s;
 
   const p = getPropertyValue<any>(s, 'profile');
   const profileLevel = getProfileLevel(p);
@@ -55,6 +55,8 @@ export const parseImageService = (service: Service): CozyImageService => {
     profileLevel,
     width,
     height,
+    sizes: sizes || [],
+    tiles: tiles || [],
     source: service
   };
 

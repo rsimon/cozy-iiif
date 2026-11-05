@@ -4,9 +4,9 @@ import type {
   Bounds, 
   CozyImageInfo, 
   Level0ImageInfo, 
-  Size, 
-  TileSpec 
+  Size
 } from '../../types';
+import type { ImageTile } from '@iiif/presentation-3';
 
 // Shorthand
 const toURL = (info: CozyImageInfo, region: string, size: string) =>
@@ -190,13 +190,15 @@ export const getLevel0TilesForRegion = (
  */
 const getLevel0TileForScale = (
   info: Level0ImageInfo,
-  tile: TileSpec,
+  tile: ImageTile,
   scaleFactor: number,
   region: Bounds
 ): Tile | undefined => {
+  const tileHeight = tile.height || tile.width;
+
   // Full-image pixels per tile
   const spanW = tile.width * scaleFactor;
-  const spanH = tile.height * scaleFactor;
+  const spanH = tileHeight * scaleFactor;
 
   const col = Math.floor(region.x / spanW);
   const row = Math.floor(region.y / spanH);
@@ -215,7 +217,7 @@ const getLevel0TileForScale = (
   const h = Math.min(spanH, info.height - y);
 
   const sizeW = Math.min(tile.width, levelW - col * tile.width);
-  const sizeH = Math.min(tile.height, levelH - row * tile.height);
+  const sizeH = Math.min(tileHeight, levelH - row * tileHeight);
 
   return {
     url: toTileURL(info, { x, y, w, h }, sizeW, sizeH),

@@ -1,5 +1,6 @@
 import type { IIIFExternalWebResource } from '@iiif/parser';
 import type { Bounds, GetImageURLOpts } from './image';
+import type { ImageSize, ImageTile } from '@iiif/presentation-3';
 
 export type CozyImageInfo = 
   | Level0ImageInfo
@@ -17,9 +18,9 @@ interface BaseImageInfo {
 
   readonly height: number;
 
-  readonly tiles: TileSpec[];
+  readonly tiles: ImageTile[];
 
-  readonly sizes: TileSize[];
+  readonly sizes: ImageSize[];
 
   readonly serviceUrl: string;
 
@@ -29,26 +30,11 @@ interface BaseImageInfo {
 
 }
 
-export interface TileSize {
-
-  width: number;
-
-  height: number;
-
-}
-
-export interface TileSpec extends TileSize {
-
-  scaleFactors: number[];
-  
-}
-
 export interface Level0ImageInfo extends BaseImageInfo {
 
   readonly type: 'level0';
 
 }
-
 
 export interface DynamicImageInfo extends BaseImageInfo {
 

@@ -1,4 +1,9 @@
-import type { IIIFExternalWebResource, Service } from '@iiif/presentation-3';
+import type { 
+  IIIFExternalWebResource, 
+  ImageSize, 
+  ImageTile, 
+  Service 
+} from '@iiif/presentation-3';
 
 export type CozyImageResource = 
   | StaticImageResource 
@@ -65,6 +70,10 @@ export interface CozyImageService {
   readonly majorVersion: number;
   
   readonly profileLevel?: number;
+
+  readonly sizes: ImageSize[];
+
+  readonly tiles: ImageTile[];
   
   readonly width?: number | null ;
   
