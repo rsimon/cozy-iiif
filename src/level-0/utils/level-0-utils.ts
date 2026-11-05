@@ -1,3 +1,4 @@
+import type { ImageTile } from '@iiif/presentation-3';
 import { clampRegion, normalizeTargetSize } from '../../core';
 import type { GetLevel0ImageOpts, StitchableTile, Tile } from '../types';
 import type { 
@@ -6,7 +7,6 @@ import type {
   Level0ImageInfo, 
   Size
 } from '../../types';
-import type { ImageTile } from '@iiif/presentation-3';
 
 // Shorthand
 const toURL = (info: CozyImageInfo, region: string, size: string) =>
