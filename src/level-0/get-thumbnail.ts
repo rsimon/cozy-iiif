@@ -92,7 +92,7 @@ export const getThumbnailURL = async (
 
       // Guard against `undefined` and make TS happy
       if (info?.type === 'level0')
-        return getThumbnailTile(info, opts);
+        return getThumbnailTile(info, opts).url;
     } else if (image.type === 'static') {
       return image.url;
     }    
