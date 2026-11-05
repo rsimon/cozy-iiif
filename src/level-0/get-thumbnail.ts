@@ -89,8 +89,10 @@ export const getThumbnailURL = async (
       return image.getImageURL(opts);
     } else if (image.type === 'level0') {
       const info = await fetchImageInfo(image.serviceUrl);
-      if (info)
-        return getImageURL(width, height, info)(opts);
+
+      // Guard against `undefined` and make TS happy
+      if (info?.type === 'level0')
+        return getThumbnailTile(info, opts);
     } else if (image.type === 'static') {
       return image.url;
     }    
