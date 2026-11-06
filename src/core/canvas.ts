@@ -6,7 +6,8 @@ import { parseTarget } from './selector';
 import { 
   getImageURL,
   isImageService,
-  parseImageResource
+  parseImageResource,
+  parseImageService
  } from './image';
 
 /**
@@ -80,8 +81,10 @@ export const getThumbnailURL = (
 
     if ('service' in thumbnail && Array.isArray(thumbnail.service)) {
       const service = thumbnail.service.find(s => isImageService(s));
-      if (service)
-        return getImageURL(width, height, service)(opts);
+      if (service) {
+        const parsed = parseImageService(service);
+        return getImageURL(width, height, parsed)(opts);
+      }
     }
 
     if ('id' in thumbnail) return thumbnail.id;

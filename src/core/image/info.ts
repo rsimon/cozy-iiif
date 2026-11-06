@@ -42,7 +42,7 @@ export const parseImageInfo = (resource: any): CozyImageInfo => {
     sizes: resource.sizes || [],
     serviceUrl,
     source: resource,
-    getImageURL: getImageURL(width, height, resource)
+    getImageURL: getImageURL(width, height, service)
   } as CozyImageInfo;
 
   if (service.profileLevel === 0) {
@@ -50,7 +50,7 @@ export const parseImageInfo = (resource: any): CozyImageInfo => {
   } else {
     return {
       ...image,
-      getRegionURL: getRegionURL(resource, width, height)
+      getRegionURL: getRegionURL(service, width, height)
     } as DynamicImageInfo;
   }
 }

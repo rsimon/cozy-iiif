@@ -1,4 +1,5 @@
 import type { ImageService2, ImageService3, Service } from '@iiif/presentation-3';
+import type { CozyImageService } from '../../types';
 import { getPropertyValue } from '../resource';
 
 type ImageService = ImageService2 | ImageService3;
@@ -37,30 +38,42 @@ const getProfileLevel = (profile: any) => {
  * Parses the raw JSON IIIF Image Service, returning major API version and
  * profile level.
  */
-export const parseImageService = (service: Service) => {
+export const parseImageService = (service: Service): CozyImageService => {
+  const id = getPropertyValue(service, 'id');
   const t = getPropertyValue<string>(service, 'type');
   const context = getPropertyValue<string>(service, 'context');
 
   const s = service as ImageService;
 
-  const { width, height } = s;
+  const { width, height, sizes, tiles } = s;
 
   const p = getPropertyValue<any>(s, 'profile');
   const profileLevel = getProfileLevel(p);
 
+  const base = {
+    id,
+    profileLevel,
+    width,
+    height,
+    sizes: sizes || [],
+    tiles: tiles || [],
+    source: service
+  };
+
   if (t === 'ImageService2' || context?.includes('image/2'))
-    return { majorVersion: 2, profileLevel, width, height };
+    return { ...base, majorVersion: 2 };
   
   if (t === 'ImageService3' || context?.includes('image/3'))
-    return { majorVersion: 3, profileLevel, width, height };
+    return { ...base, majorVersion: 3 };
 
   // Fallback / future-proofing for newer contexts (e.g., image/4)
   if (context?.includes('image/')) {
     const match = context.match(/image\/(\d+)/);
     const majorVersion = match ? parseInt(match[1], 10) : 3;
-    return { majorVersion, profileLevel, width, height };
+
+    return { ...base, majorVersion };
   }
 
-  return { majorVersion: 3, profileLevel, width, height };
+  return { ...base, majorVersion: 3 };
 }
 

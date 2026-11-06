@@ -1,4 +1,9 @@
-import type { IIIFExternalWebResource, Service } from '@iiif/presentation-3';
+import type { 
+  IIIFExternalWebResource, 
+  ImageSize, 
+  ImageTile, 
+  Service 
+} from '@iiif/presentation-3';
 
 export type CozyImageResource = 
   | StaticImageResource 
@@ -40,13 +45,9 @@ export interface DynamicImageServiceResource extends BaseImageResource {
 
   readonly type: 'dynamic';
 
-  readonly service: Service;
+  readonly service: CozyImageService;
 
   readonly serviceUrl: string;
-
-  readonly majorVersion: number;
-
-  readonly profileLevel: number;
 
   getRegionURL(bounds: Bounds, opts?: GetImageURLOpts): string;
 
@@ -56,11 +57,29 @@ export interface Level0ImageServiceResource extends BaseImageResource {
 
   readonly type: 'level0';
 
-  readonly majorVersion: number;
-
-  readonly service: Service;
+  readonly service: CozyImageService;
 
   readonly serviceUrl: string;
+
+}
+
+export interface CozyImageService {
+
+  readonly id: string;
+  
+  readonly majorVersion: number;
+  
+  readonly profileLevel?: number;
+
+  readonly sizes: ImageSize[];
+
+  readonly tiles: ImageTile[];
+  
+  readonly width?: number | null ;
+  
+  readonly height?: number | null;
+
+  readonly source: Service;
 
 }
 

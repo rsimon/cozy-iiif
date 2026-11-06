@@ -1,8 +1,8 @@
-import type { Service } from '@iiif/presentation-3';
 import { getPropertyValue } from '../resource';
-import { parseImageService } from './service';
 import type {
   Bounds,
+  CozyImageInfo,
+  CozyImageService,
   GetImageURLOpts,
   Rotation,
   Size
@@ -35,7 +35,7 @@ const toRotationParam = (rotation: Rotation): string => {
 }
 
 const getImageURLFromService = (
-  service: Service,
+  service: CozyImageService | CozyImageInfo,
   region: string,
   size: 'full' | Size,
   sourceBounds: Bounds,
@@ -43,33 +43,29 @@ const getImageURLFromService = (
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
 
-  const { majorVersion, profileLevel } = parseImageService(service);
-
-  const isLevel0 = profileLevel === 0;
-
-  const fullSizeParam = majorVersion === 2 ? 'full' : 'max';
+  const isLevel0 = service.profileLevel === 0;
+  const fullSizeParam = service.majorVersion === 2 ? 'full' : 'max';
   
   if (isLevel0) {
     const { degrees, mirrored } = normalizeRotation(rotation);
-    if (degrees !== 0 || mirrored)
+    if (degrees !== 0 || mirrored) {
       console.warn(`Level 0 image - rotation and mirroring not supported`);
-
-    if (region !== 'full') {
-      console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
       return;
     }
 
-    if (size === 'full') {
+    if (region !== 'full')
+      console.warn('IIIF Level 0 does not support custom regions. Returned URL will reference a suitably-sized full image');
+
+    if (size === 'full')
       return `${id}/full/${fullSizeParam}/0/default.jpg`;
-    }
 
     // For level 0, find the closest pre-defined size
-    if ('sizes' in service && Array.isArray(service.sizes)) {
+    if (service.sizes.length > 0) { 
       const suitableSize = service.sizes
-        .sort((a, b) => (b.width * b.height) - (a.width * a.height))
-        .filter(s => (s.width * s.height) >= size.w * size.h)[0];
+        .sort((a, b) => (a.width * a.height) - (b.width * b.height))
+        .filter(s => s.width >= size.w && s.height >= size.h)[0];
 
-      const isV2 = majorVersion === 2;
+      const isV2 = service.majorVersion === 2;
       if (suitableSize)
         return `${id}/full/${suitableSize.width},${isV2 ? '' : suitableSize.height}/0/default.jpg`;
     }
@@ -155,7 +151,7 @@ export const clampRegion = (bounds: Bounds, imageSize: Size): Bounds => {
 export const getImageURL = (
   width: number | undefined, 
   height: number | undefined, 
-  service: Service  
+  service: CozyImageService | CozyImageInfo
 ) => (opts: GetImageURLOpts = { size: 400 }) => {
   if (!width || !height) {
     console.warn('Undefined image size');
@@ -177,7 +173,7 @@ export const getImageURL = (
  * an image service.
  */
 export const getRegionURL = (
-  service: Service,
+  service: CozyImageService,
   width: number,
   height: number
 ) => (
@@ -185,9 +181,8 @@ export const getRegionURL = (
   opts: GetImageURLOpts = { size: 400 }
 ): string | undefined => {
   const id = getPropertyValue(service, 'id');
-  const isLevel0 = parseImageService(service).profileLevel === 0;
 
-  if (isLevel0) {
+  if (service.profileLevel === 0) {
     console.warn(`Level 0 image service does not support custom region URLs: ${id}`);
     return;
   }

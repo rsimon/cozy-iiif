@@ -1,8 +1,14 @@
+import { getImageURL } from '../core';
 import { fetchImageInfo } from '../helpers';
-import type { Level0ImageInfo, Level0ImageServiceResource } from '../types';
 import { cropRegionFromTile } from './crop-region';
 import type { CroppedTile, GetLevel0ImageOpts } from './types';
 import { fitRegion, stitchRegionToBlob } from './utils';
+import type { 
+  CozyCanvas, 
+  CozyImageResource, 
+  Level0ImageInfo, 
+  Level0ImageServiceResource 
+} from '../types';
 
 /**
  * Returns a single Level 0 tile suitable for displaying as a thumbnail
@@ -59,4 +65,36 @@ export const getStitchedThumbnail = async (
   }, imageSize, opts);
 
   return stitchRegionToBlob(info, region, opts);
+}
+
+/** 
+ * A near-drop-in replacement for the standard canvas.getThumbnailURL() method
+ * which resolves `info.json` for Level 0 tilesets, so that a suitable `size`
+ * can be chosen for the thumbnail instead of the full high-res image. Returns
+ * a `Promise<string | undefined>`.
+ */
+export const getThumbnailURL = async (
+  canvas: CozyCanvas,
+  images: CozyImageResource[] = canvas.images,
+  opts: GetLevel0ImageOpts = { size: 400 }
+) => {
+  const { width, height } = canvas;
+  if (!width || !height) return;
+  
+  if (canvas.source.thumbnail && canvas.source.thumbnail.length > 0)
+    return canvas.getThumbnailURL();
+  
+  for (const image of images) {
+    if (image.type === 'dynamic') {
+      return image.getImageURL(opts);
+    } else if (image.type === 'level0') {
+      const info = await fetchImageInfo(image.serviceUrl);
+
+      // Guard against `undefined` and make TS happy
+      if (info?.type === 'level0')
+        return getThumbnailTile(info, opts).url;
+    } else if (image.type === 'static') {
+      return image.url;
+    }    
+  }
 }
