@@ -1,11 +1,13 @@
 {
   "name": "cozy-iiif",
-  "version": "1.0.0-beta.7",
-  "description": "A developer-friendly collection of abstractions and utilities built on top of @iiif/presentation-3 and @iiif/parser",
+  "version": "1.0.0-beta.8",
+  "description": "A friendly TypeScript API for IIIF",
   "license": "MIT",
   "author": "Rainer Simon",
   "keywords": [
-    "IIIF"
+    "IIIF",
+    "Image API",
+    "Presentation API"
   ],
   "homepage": "https://github.com/rsimon/cozy-iiif#readme",
   "bugs": {
@@ -30,11 +32,11 @@
   },
   "devDependencies": {
     "typescript": "^7.0.2",
-    "vite": "^8.3.5",
+    "vite": "^8.3.6",
     "vitest": "^5.1.0"
   },
   "dependencies": {
-    "@iiif/parser": "^4.0.5",
+    "@iiif/parser": "^4.0.6",
     "@iiif/presentation-3": "^2.2.4",
     "p-throttle": "^8.1.1",
     "uuid": "^14.0.3"
