@@ -14,6 +14,7 @@ import {
 
   // Presentaiton manifests
   MANIFEST_SHARED_CANVAS,
+  MANIFEST_V2,
   MANIFEST_V2_MULTI_IMAGE_CANVAS,
   MANIFEST_V3_LEVEL_0,
   MANIFEST_V3_CROPPED_IMAGES,
@@ -41,7 +42,15 @@ describe('Cozy', () => {
     expect(result.type).toBe('manifest');
   }),
 
-  it('should parse a v2 manifest correctly (incl. multi-image canvas)', () => {
+  it('should parse a v2 manifest correctly', async () => {
+    const result = await Cozy.parseURL(MANIFEST_V2);
+    expect(result.type).toBe('manifest');
+
+    const manifest = (result as any).resource as CozyManifest;
+    expect(manifest.canvases.length).toBe(390);
+  }),
+
+  it('should parse a v2 manifest with multi-image canvases correctly', () => {
     const result = Cozy.parse(MANIFEST_V2_MULTI_IMAGE_CANVAS);
     expect(result.type).toBe('manifest');
 

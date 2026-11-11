@@ -1,8 +1,11 @@
 export const COLLECTION_V2 =
   'https://www.davidrumsey.com/luna/servlet/iiif/collection/s/1k986a';
 
-export const MANIFEST_SHARED_CANVAS=
+export const MANIFEST_SHARED_CANVAS =
   'https://ids.si.edu/ids/manifest/FS-8106_06';
+
+export const MANIFEST_V2 =
+  'https://iiif.bodleian.ox.ac.uk/iiif/manifest/4c7085b2-2ae4-408d-8498-ac49c04d55b0.json';
 
 export const MANIFEST_V2_MULTI_IMAGE_CANVAS = {
   '@context': 'http://iiif.io/api/presentation/2/context.json',

@@ -21,7 +21,10 @@ export const parseManifestResource = (resource: any, majorVersion: number): Cozy
     const sourceRanges: Range[] = [];
 
     const modelBuilder = new Traverse({
-      canvas: [canvas => { if (canvas.items) sourceCanvases.push(canvas) }],
+      canvas: [(canvas, { parent }) => { 
+        if ((parent as { type?: string } | undefined)?.type === 'Range') return;
+        sourceCanvases.push(canvas) 
+      }],
       range: [range => { if (range.type === 'Range') sourceRanges.push(range) }]
     });
   
