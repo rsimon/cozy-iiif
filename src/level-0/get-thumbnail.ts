@@ -77,18 +77,15 @@ export const getThumbnailURL = async (
   canvas: CozyCanvas,
   images: CozyImageResource[] = canvas.images,
   opts: GetLevel0ImageOpts = { size: 400 }
-) => {
-  const { width, height } = canvas;
-  if (!width || !height) return;
-  
+) => {  
   if (canvas.source.thumbnail && canvas.source.thumbnail.length > 0)
-    return canvas.getThumbnailURL();
+    return canvas.getThumbnailURL(opts);
   
   for (const image of images) {
     if (image.type === 'dynamic') {
       return image.getImageURL(opts);
     } else if (image.type === 'level0') {
-      const info = await fetchImageInfo(image.serviceUrl);
+      const info = await fetchImageInfo(image.serviceUrl).catch(() => undefined);
 
       // Guard against `undefined` and make TS happy
       if (info?.type === 'level0')

@@ -72,22 +72,26 @@ export const getImages = (canvas: Canvas): CozyImageResource[] => {
 export const getThumbnailURL = (
   canvas: Canvas, 
   images: CozyImageResource[] = getImages(canvas)
-) => (opts: GetImageURLOpts = { size: 400 }) => {
-  const { width, height } = canvas;
-  if (!width || !height) return;
+) => (opts: GetImageURLOpts = { size: 400 }): string | undefined => {
+  const thumbnail = canvas.thumbnail?.[0];
 
-  if (canvas.thumbnail && canvas.thumbnail.length > 0) {
-    const thumbnail = canvas.thumbnail[0];
+  if (thumbnail) {
+    const service = 'service' in thumbnail && Array.isArray(thumbnail.service)
+      ? thumbnail.service.find(s => isImageService(s))
+      : undefined;
 
-    if ('service' in thumbnail && Array.isArray(thumbnail.service)) {
-      const service = thumbnail.service.find(s => isImageService(s));
-      if (service) {
-        const parsed = parseImageService(service);
-        return getImageURL(width, height, parsed)(opts);
-      }
+    if (service) {
+      const parsed = parseImageService(service);
+
+      const [w, h] = parsed.width && parsed.height
+        ? [parsed.width, parsed.height]
+        : [canvas.width, canvas.height];
+
+      const url = getImageURL(w, h, parsed)(opts);
+      if (url) return url;
     }
 
-    if ('id' in thumbnail) return thumbnail.id;
+    if ('id' in thumbnail && thumbnail.id) return thumbnail.id;
   }
 
   for (const image of images) {
