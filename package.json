@@ -32,8 +32,8 @@
   },
   "devDependencies": {
     "typescript": "^7.0.2",
-    "vite": "^8.3.8",
-    "vitest": "^5.1.1"
+    "vite": "^8.4.0",
+    "vitest": "^5.1.2"
   },
   "dependencies": {
     "@iiif/parser": "^4.0.7",
